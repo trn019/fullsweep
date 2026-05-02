@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#004a99" />
+    <title>FullSweep — Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app">
+    <div class="phone">
+      <header class="top-banner">
+        <div class="top-banner__inner">
+          <p class="greeting" id="greeting">Good morning, John!</p>
+          <div class="mascot mascot--header" aria-hidden="true">
+            <svg viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="32" cy="58" rx="4" ry="10" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+              <ellipse cx="22" cy="52" rx="3" ry="8" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+              <ellipse cx="42" cy="52" rx="3" ry="8" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+              <circle cx="32" cy="28" r="22" fill="#5ecf8f" stroke="#2d8a5e" stroke-width="2.5" />
+              <ellipse cx="26" cy="26" rx="3" ry="4" fill="#1a3328" />
+              <ellipse cx="38" cy="26" rx="3" ry="4" fill="#1a3328" />
+              <path d="M28 34q4 4 8 0" stroke="#1a3328" stroke-width="2" stroke-linecap="round" fill="none" />
+            </svg>
+          </div>
+        </div>
+      </header>
+
+      <div class="panels">
+        <main class="scroll-main panel panel--active" data-panel="home">
+          <section class="block" aria-labelledby="plate-heading">
+            <div class="block__head">
+              <h2 id="plate-heading">What’s on your plate today?</h2>
+              <a class="link-all" href="#" data-go-tab="tasks">View all</a>
+            </div>
+            <div class="carousel">
+              <button type="button" class="carousel__arrow" id="carousel-prev" aria-label="Previous task">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <article class="task-card" id="task-card">
+                <h3 class="task-card__title" id="task-title">Wash the dishes</h3>
+                <p class="task-card__time" id="task-time">Today, 10:12am</p>
+                <div class="task-card__actions">
+                  <button type="button" class="btn-pill" id="btn-complete">Mark Complete</button>
+                  <button type="button" class="btn-pill btn-pill--secondary" id="btn-focus">Begin Focus Mode</button>
+                </div>
+              </article>
+              <button type="button" class="carousel__arrow" id="carousel-next" aria-label="Next task">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+            <div class="dots" id="task-dots" role="tablist" aria-label="Task slides"></div>
+          </section>
+
+          <section class="block" aria-labelledby="room-heading">
+            <div class="block__head">
+              <h2 id="room-heading">Let’s check on this room...</h2>
+              <a class="link-all" href="#" data-go-tab="tasks">View all</a>
+            </div>
+            <article class="room-card">
+              <div class="room-card__art room-card__art--bedroom" aria-hidden="true">
+                <div class="illo bedroom">
+                  <div class="illo-bed"></div>
+                  <div class="illo-night"></div>
+                  <div class="illo-lamp"></div>
+                  <div class="illo-plant"></div>
+                </div>
+              </div>
+              <div class="room-card__body">
+                <h3 class="room-card__title">Bedroom</h3>
+                <p class="room-card__meta" id="bedroom-meta">cleaned 3 weeks ago</p>
+                <div class="dust-meter">
+                  <div class="dust-meter__track">
+                    <div class="dust-meter__fill" id="dust-fill"></div>
+                  </div>
+                  <p class="dust-meter__label" id="dust-label">Getting dusty...</p>
+                </div>
+                <button type="button" class="btn-inline" id="btn-quick-clean">Log quick clean</button>
+              </div>
+            </article>
+          </section>
+
+          <section class="block block--stats" aria-labelledby="week-heading">
+            <div class="stats-heading-row">
+              <h2 id="week-heading">You crushed it this week!</h2>
+              <div class="mascot mascot--peek" aria-hidden="true">
+                <svg viewBox="0 0 56 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="28" cy="28" r="20" fill="#5ecf8f" stroke="#2d8a5e" stroke-width="2" />
+                  <ellipse cx="22" cy="26" rx="2.5" ry="3" fill="#1a3328" />
+                  <ellipse cx="34" cy="26" rx="2.5" ry="3" fill="#1a3328" />
+                  <path d="M24 33q4 3 8 0" stroke="#1a3328" stroke-width="1.8" stroke-linecap="round" fill="none" />
+                  <path d="M40 45c6-2 12 4 10 10" stroke="#2d8a5e" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                </svg>
+              </div>
+            </div>
+            <div class="stat-grid">
+              <article class="stat-tile">
+                <p class="stat-tile__label">You completed:</p>
+                <p class="stat-tile__value" id="stat-completed">0 tasks</p>
+                <span class="stat-tile__icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#0ea5e9" stroke-width="2" />
+                    <path d="M8 12l2.5 2.5L16 9" stroke="#0ea5e9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+              </article>
+              <article class="stat-tile">
+                <p class="stat-tile__label">Time spent cleaning:</p>
+                <p class="stat-tile__value" id="stat-time">0 min</p>
+                <span class="stat-tile__icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 3h8v3l-4 5-4-5V3zM8 21h8v-3l-4-5-4 5v3z" stroke="#0ea5e9" stroke-width="2" stroke-linejoin="round" />
+                    <path d="M9 10h6M9 14h6" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                </span>
+              </article>
+            </div>
+          </section>
+
+          <section class="block block--last">
+            <article class="room-card room-card--kitchen">
+              <div class="room-card__art room-card__art--kitchen" aria-hidden="true">
+                <div class="illo kitchen">
+                  <div class="k-counter"></div>
+                  <div class="k-sink"></div>
+                  <div class="k-window"></div>
+                </div>
+              </div>
+              <div class="room-card__body">
+                <h3 class="room-card__title">The kitchen is sparkling!</h3>
+                <p class="room-card__meta">cleaned 1 day ago</p>
+              </div>
+            </article>
+          </section>
+        </main>
+
+        <main class="scroll-main panel sub-panel" data-panel="tasks" hidden>
+          <section class="block">
+            <h2 class="sub-panel__title">All tasks</h2>
+            <p class="sub-panel__lede">Tap the circle to complete or reopen.</p>
+            <ul class="task-list" id="task-list"></ul>
+          </section>
+        </main>
+
+        <main class="scroll-main panel sub-panel" data-panel="schedule" hidden>
+          <section class="block">
+            <h2 class="sub-panel__title">This week</h2>
+            <p class="sub-panel__lede">Scheduled chores at a glance.</p>
+            <div id="schedule-list"></div>
+          </section>
+        </main>
+
+        <main class="scroll-main panel sub-panel" data-panel="activity" hidden>
+          <section class="block">
+            <h2 class="sub-panel__title">Activity</h2>
+            <p class="sub-panel__lede">Recent completions and focus blocks.</p>
+            <ul class="activity-feed" id="activity-list"></ul>
+          </section>
+        </main>
+      </div>
+
+      <nav class="tab-bar" aria-label="Main">
+        <button type="button" class="tab-bar__item tab-bar__item--active" data-tab="home" aria-current="page">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+          </svg>
+          <span>Home</span>
+        </button>
+        <button type="button" class="tab-bar__item" data-tab="tasks">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          <span>Tasks</span>
+        </button>
+        <button type="button" class="tab-bar__item" data-tab="schedule">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span>Schedule</span>
+        </button>
+        <button type="button" class="tab-bar__item" data-tab="activity">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span>Activity</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="toast-root" id="toast-root" aria-live="polite"></div>
+
+    <div class="focus-overlay" id="focus-overlay" aria-hidden="true">
+      <div class="focus-modal" role="dialog" aria-modal="true" aria-labelledby="focus-dialog-title">
+        <h2 id="focus-dialog-title" class="focus-modal__title">Focus mode</h2>
+        <p class="focus-modal__task" id="focus-task-label">Wash the dishes</p>
+        <p class="focus-modal__hint">Stay on task — we’ll log your time when the timer finishes.</p>
+        <p class="focus-timer" id="focus-timer-display">15:00</p>
+        <div class="focus-modal__actions">
+          <button type="button" class="btn-pill" id="focus-start">Start timer</button>
+          <button type="button" class="btn-pill btn-pill--ghost" id="focus-done" style="display: none">Done</button>
+          <button type="button" class="btn-text" id="focus-close">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
