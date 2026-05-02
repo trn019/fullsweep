@@ -766,6 +766,12 @@ a.room-tile:focus-visible {
   color: var(--tasks-blue);
 }
 
+/* Solid bar while task-added completion is open — avoids frosted corners “peeping” page blue */
+.tasks-page:has(#recurring-complete:not([hidden])) .tab-bar {
+  background: #ffffff;
+  backdrop-filter: none;
+}
+
 .tasks-view-panel[hidden] {
   display: none !important;
 }

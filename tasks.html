@@ -431,11 +431,9 @@
           <span>Activity</span>
         </a>
       </nav>
-    </div>
 
-    <div class="onetime-flow" id="onetime-flow" hidden aria-hidden="true">
-      <div class="onetime-flow__backdrop" aria-hidden="true"></div>
-      <div class="onetime-flow__sheet" role="dialog" aria-modal="true" aria-labelledby="onetime-title-1">
+    <div class="task-add-flow onetime-flow" id="onetime-flow" hidden aria-hidden="true">
+      <div class="task-add-flow__sheet" role="dialog" aria-modal="true" aria-labelledby="onetime-title-1">
         <div class="onetime-step" id="onetime-step1">
           <header class="onetime-header">
             <span class="onetime-header__spacer" aria-hidden="true"></span>
@@ -627,6 +625,256 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="task-add-flow recurring-flow" id="recurring-flow" hidden aria-hidden="true">
+      <div class="task-add-flow__sheet" role="dialog" aria-modal="true" aria-labelledby="recurring-title-1">
+        <div class="recurring-step" id="recurring-step1">
+          <header class="onetime-header">
+            <span class="onetime-header__spacer" aria-hidden="true"></span>
+            <h1 class="onetime-header__title" id="recurring-title-1">Recurring Task</h1>
+            <button type="button" class="onetime-header__btn" data-recurring-close aria-label="Close">×</button>
+          </header>
+          <div class="onetime-body">
+            <div class="onetime-field">
+              <label class="onetime-visually-hidden" for="recurring-room">Choose Room</label>
+              <select id="recurring-room" class="onetime-select" aria-label="Choose Room">
+                <option value="" disabled selected>Choose Room</option>
+                <option value="Bathroom">Bathroom</option>
+                <option value="Bedroom">Bedroom</option>
+                <option value="Kitchen">Kitchen</option>
+                <option value="Living Room">Living Room</option>
+                <option value="Dining Room">Dining Room</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="onetime-field">
+              <label class="onetime-visually-hidden" for="recurring-task">Choose Task</label>
+              <select id="recurring-task" class="onetime-select" aria-label="Choose Task">
+                <option value="" disabled selected>Choose Task</option>
+              </select>
+            </div>
+            <div class="onetime-field">
+              <label class="onetime-label" for="recurring-notes">Notes</label>
+              <textarea
+                id="recurring-notes"
+                class="onetime-textarea"
+                name="notes"
+                placeholder="Jot down specifics, reminders, etc..."
+              ></textarea>
+            </div>
+            <div class="onetime-effort-wrap">
+              <p class="onetime-effort-q">What is this task's effort level?</p>
+              <div class="onetime-effort-row">
+                <button type="button" class="onetime-effort-card onetime-effort-card--selected" data-rec-effort="low" aria-pressed="true">
+                  <span class="onetime-effort-clocks" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  Low
+                </button>
+                <button type="button" class="onetime-effort-card" data-rec-effort="moderate" aria-pressed="false">
+                  <span class="onetime-effort-clocks" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  Moderate
+                </button>
+                <button type="button" class="onetime-effort-card" data-rec-effort="high" aria-pressed="false">
+                  <span class="onetime-effort-clocks" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 3" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  High
+                </button>
+              </div>
+            </div>
+            <div class="onetime-footer">
+              <button type="button" class="onetime-btn-next" id="recurring-next">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="recurring-step" id="recurring-step2" hidden>
+          <header class="onetime-header">
+            <button type="button" class="onetime-header__btn" id="recurring-back" aria-label="Back">←</button>
+            <h1 class="onetime-header__title" id="recurring-title-2">Recurring Task</h1>
+            <button type="button" class="onetime-header__btn" data-recurring-close aria-label="Close">×</button>
+          </header>
+          <div class="onetime-body">
+            <div class="recurring-every-card">
+              <h2 class="recurring-every-card__label">Every</h2>
+              <div class="recurring-every-wheel">
+                <div class="onetime-time-wheel__viewport recurring-every-viewport">
+                  <div class="onetime-time-wheel__highlight" aria-hidden="true"></div>
+                  <div class="onetime-time-wheel__columns">
+                    <div class="onetime-time-wheel__col">
+                      <div class="onetime-time-wheel__scroll" id="rec-scroll-interval" tabindex="0"></div>
+                    </div>
+                    <div class="onetime-time-wheel__col">
+                      <div class="onetime-time-wheel__scroll" id="rec-scroll-unit" tabindex="0"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="onetime-card recurring-detail-card">
+              <button type="button" class="recurring-detail-row" id="recurring-repeat-btn">
+                <span>Repeat</span>
+                <span class="recurring-detail-row__val"><span id="recurring-repeat-label">On Monday</span> ›</span>
+              </button>
+              <div class="onetime-row">
+                <span>Start</span>
+                <button
+                  type="button"
+                  class="onetime-row__action"
+                  id="rec-start-btn"
+                  aria-expanded="false"
+                  aria-controls="rec-start-wheel"
+                >
+                  <span id="rec-start-display">10AM</span>
+                  <span class="onetime-row__chev" aria-hidden="true">›</span>
+                </button>
+              </div>
+              <div class="onetime-time-wheel-wrap" id="rec-start-wheel" hidden>
+                <div class="onetime-time-wheel" aria-label="Start time">
+                  <div class="onetime-time-wheel__viewport">
+                    <div class="onetime-time-wheel__highlight" aria-hidden="true"></div>
+                    <div class="onetime-time-wheel__columns">
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-start-h" tabindex="0"></div>
+                      </div>
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-start-m" tabindex="0"></div>
+                      </div>
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-start-ap" tabindex="0"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="onetime-row">
+                <span>End</span>
+                <button
+                  type="button"
+                  class="onetime-row__action"
+                  id="rec-end-btn"
+                  aria-expanded="false"
+                  aria-controls="rec-end-wheel"
+                >
+                  <span id="rec-end-display">1PM</span>
+                  <span class="onetime-row__chev" aria-hidden="true">›</span>
+                </button>
+              </div>
+              <div class="onetime-time-wheel-wrap" id="rec-end-wheel" hidden>
+                <div class="onetime-time-wheel" aria-label="End time">
+                  <div class="onetime-time-wheel__viewport">
+                    <div class="onetime-time-wheel__highlight" aria-hidden="true"></div>
+                    <div class="onetime-time-wheel__columns">
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-end-h" tabindex="0"></div>
+                      </div>
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-end-m" tabindex="0"></div>
+                      </div>
+                      <div class="onetime-time-wheel__col">
+                        <div class="onetime-time-wheel__scroll" id="rec-scroll-end-ap" tabindex="0"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="onetime-notify">
+              <span>Notify Me</span>
+              <button type="button" class="onetime-switch" id="recurring-notify" role="switch" aria-checked="false" aria-label="Notify me"></button>
+            </div>
+            <div class="onetime-footer">
+              <button type="button" class="onetime-btn-save" id="recurring-save">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="recurring-subscreen" id="recurring-repeat-screen" hidden>
+          <header class="onetime-header recurring-subscreen__header">
+            <button type="button" class="onetime-header__btn recurring-subscreen__back" id="recurring-repeat-back" aria-label="Back">
+              <svg class="recurring-subscreen__chevron" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <h1 class="onetime-header__title">Repeat</h1>
+            <span class="onetime-header__spacer" aria-hidden="true"></span>
+          </header>
+          <div class="repeat-day-list" id="repeat-day-list" role="group" aria-label="Days of week"></div>
+        </div>
+
+        <div class="task-added-screen" id="recurring-complete" hidden>
+          <div class="task-added-scroll">
+            <h1 class="task-added-screen__title">Task Added!</h1>
+            <div class="task-added-card">
+              <div class="task-added-card__left">
+                <h2 class="task-added-card__task" id="complete-task-title">Vacuum Floor</h2>
+                <p class="task-added-card__meta">cleaned just now</p>
+                <p class="task-added-card__every">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M23 4v6h-6" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                  <span id="complete-every-line">Every week</span>
+                </p>
+              </div>
+              <div class="task-added-card__right">
+                <div class="task-added-meter">
+                  <div class="task-added-meter__fill"></div>
+                </div>
+                <p class="task-added-meter__label">Good Job!</p>
+                <div class="task-added-dots" aria-hidden="true">
+                  <span class="task-added-dot task-added-dot--on"></span>
+                  <span class="task-added-dot"></span>
+                  <span class="task-added-dot"></span>
+                </div>
+              </div>
+            </div>
+            <div class="task-added-scene" aria-hidden="true">
+              <div class="task-added-bar"></div>
+              <div class="task-added-mascot">
+                <svg viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg" width="72" height="80">
+                  <ellipse cx="32" cy="58" rx="4" ry="10" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+                  <ellipse cx="22" cy="52" rx="3" ry="8" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+                  <ellipse cx="42" cy="52" rx="3" ry="8" stroke="#2d8a5e" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="32" cy="28" r="22" fill="#7fe8b5" stroke="#2d8a5e" stroke-width="2.5" />
+                  <ellipse cx="26" cy="26" rx="3" ry="4" fill="#1a3328" />
+                  <ellipse cx="38" cy="26" rx="3" ry="4" fill="#1a3328" />
+                  <path d="M28 34q4 4 8 0" stroke="#1a3328" stroke-width="2" stroke-linecap="round" fill="none" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="task-added-footer">
+            <button type="button" class="task-added-celebrate" id="recurring-celebrate">Celebrate!</button>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
 
     <div
