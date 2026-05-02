@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0056a4" />
+    <title>Bedroom — FullSweep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="tasks.css" />
+    <link rel="stylesheet" href="room.css" />
+    <link rel="stylesheet" href="task-settings.css" />
+  </head>
+  <body class="tasks-page">
+    <div class="tasks-phone">
+      <header class="tasks-hero room-detail-tabs">
+        <div class="tasks-view-tabs" role="tablist" aria-label="Task view">
+          <a href="tasks.html" class="tasks-view-tab" role="tab">By Day</a>
+          <a href="tasks.html#rooms" class="tasks-view-tab tasks-view-tab--active" role="tab" aria-current="page">By Rooms</a>
+        </div>
+      </header>
+
+      <section class="room-detail-banner" aria-label="Room illustration">
+        <div class="room-detail-scene" aria-hidden="true">
+          <div class="room-detail-bed"></div>
+          <div class="room-detail-night"></div>
+          <div class="room-detail-lamp"></div>
+          <div class="room-detail-plant"></div>
+        </div>
+        <div class="tasks-meter room-detail-banner-meter" id="room-hero-meter">
+          <div class="tasks-meter__track">
+            <div class="tasks-meter__fill tasks-meter__fill--warn" id="room-hero-fill" style="width: 58%"></div>
+          </div>
+        </div>
+      </section>
+
+      <main class="tasks-scroll room-detail-scroll" id="room-main">
+        <div class="room-detail-heading-row">
+          <h2 class="rooms-dash__title" id="room-heading-colon"><span id="room-heading-name">Bedroom</span>:</h2>
+          <div class="tasks-sort-wrap">
+            <button
+              type="button"
+              class="tasks-sort-btn"
+              id="room-sort"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="room-sort-menu"
+            >
+              <span id="room-sort-label">Sort by cleanliness</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div class="tasks-sort-menu" id="room-sort-menu" role="menu" hidden>
+              <button type="button" class="tasks-sort-menu__item tasks-sort-menu__item--active" role="menuitemradio" data-sort="cleanliness" aria-checked="true">
+                Cleanliness <span class="tasks-sort-menu__hint">(meter bar)</span>
+              </button>
+              <button type="button" class="tasks-sort-menu__item" role="menuitemradio" data-sort="effort" aria-checked="false">
+                Effort <span class="tasks-sort-menu__hint">(dots · easy → hard)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="room-task-list"></div>
+      </main>
+
+      <button type="button" class="tasks-fab" id="room-fab" aria-label="Add task">+</button>
+
+      <nav class="tab-bar" aria-label="Main">
+        <a class="tab-bar__item" href="index.html">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+          </svg>
+          <span>Home</span>
+        </a>
+        <a class="tab-bar__item tab-bar__item--active" href="tasks.html" aria-current="page">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          <span>Tasks</span>
+        </a>
+        <a class="tab-bar__item" href="tasks.html#rooms">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <span>Schedule</span>
+        </a>
+        <a class="tab-bar__item" href="index.html#activity">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+          </svg>
+          <span>Activity</span>
+        </a>
+      </nav>
+    </div>
+
+    <div
+      class="task-settings-overlay"
+      id="task-settings-overlay"
+      hidden
+      aria-hidden="true"
+    >
+      <div class="task-settings-backdrop" aria-hidden="true"></div>
+      <div
+        class="task-settings-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-settings-title"
+      >
+        <button type="button" class="task-settings-close" id="task-settings-close" aria-label="Close">
+          ×
+        </button>
+        <h2 class="task-settings-title" id="task-settings-title">Task</h2>
+        <div class="task-settings-icon-wrap">
+          <div class="task-settings-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M5 17h10.5a2.5 2.5 0 002.5-2.5v-.5a3 3 0 00-3-3h-1.2L12 8H8.5"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="8.5" cy="17" r="2.25" stroke="currentColor" stroke-width="1.65" />
+              <path
+                d="M18.5 8.5L21 6M19.5 4.5H21v1.5"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+        <div class="task-settings-field">
+          <label class="task-settings-visually-hidden" for="task-settings-location">Location</label>
+          <input
+            type="text"
+            class="task-settings-input"
+            id="task-settings-location"
+            name="location"
+            autocomplete="off"
+          />
+        </div>
+        <div class="task-settings-field">
+          <label class="task-settings-visually-hidden" for="task-settings-category">Category</label>
+          <select class="task-settings-select" id="task-settings-category" aria-label="Category"></select>
+        </div>
+        <div class="task-settings-field">
+          <label class="task-settings-label" for="task-settings-notes">Notes</label>
+          <textarea
+            class="task-settings-textarea"
+            id="task-settings-notes"
+            name="notes"
+            placeholder="Jot down specifics, reminders, etc..."
+          ></textarea>
+        </div>
+        <div class="task-settings-effort-block">
+          <p class="task-settings-effort-q">What is this task's effort level?</p>
+          <div class="task-settings-effort-row">
+            <button
+              type="button"
+              class="task-settings-effort-btn task-settings-effort--selected"
+              data-effort-level="low"
+              aria-pressed="true"
+            >
+              <span class="task-settings-effort-visual" aria-hidden="true"><span class="eff-dot"></span></span>
+              Low
+            </button>
+            <button type="button" class="task-settings-effort-btn" data-effort-level="moderate" aria-pressed="false">
+              <span class="task-settings-effort-visual" aria-hidden="true"
+                ><span class="eff-dot"></span><span class="eff-dot"></span
+              ></span>
+              Moderate
+            </button>
+            <button type="button" class="task-settings-effort-btn" data-effort-level="high" aria-pressed="false">
+              <span class="task-settings-effort-visual" aria-hidden="true"
+                ><span class="eff-dot"></span><span class="eff-dot"></span><span class="eff-dot"></span
+              ></span>
+              High
+            </button>
+          </div>
+        </div>
+        <div class="task-settings-rows">
+          <div class="task-settings-row">
+            <span class="task-settings-row-label">Every</span>
+            <button type="button" class="task-settings-row-value" id="task-settings-every">2 weeks ›</button>
+          </div>
+          <div class="task-settings-row">
+            <span class="task-settings-row-label">Repeat</span>
+            <button type="button" class="task-settings-row-value" id="task-settings-repeat">On Monday ›</button>
+          </div>
+          <div class="task-settings-row">
+            <span class="task-settings-row-label">Time</span>
+            <button type="button" class="task-settings-row-value" id="task-settings-time">Time ›</button>
+          </div>
+        </div>
+        <div class="task-settings-notify">
+          <span>Notify Me</span>
+          <button type="button" class="task-settings-switch" id="task-settings-notify" aria-checked="false" role="switch" aria-label="Notify me"></button>
+        </div>
+        <div class="task-settings-footer">
+          <button type="button" class="task-settings-save" id="task-settings-save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-root" id="room-toast-root" aria-live="polite"></div>
+    <script src="room.js" defer></script>
+    <script src="task-settings.js" defer></script>
+  </body>
+</html>

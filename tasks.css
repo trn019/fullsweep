@@ -54,6 +54,8 @@
 .tasks-hero {
   background: var(--tasks-blue);
   padding: calc(12px + env(safe-area-inset-top, 0px)) 0 0;
+  position: relative;
+  z-index: 10;
 }
 
 .tasks-view-tabs {
@@ -61,6 +63,9 @@
   justify-content: center;
   gap: 40px;
   padding: 0 20px 16px;
+  position: relative;
+  z-index: 1;
+  touch-action: manipulation;
 }
 
 .tasks-view-tab {
@@ -90,6 +95,14 @@
 }
 
 /* ——— White calendar strip ——— */
+
+.tasks-calendar-shell {
+  display: block;
+}
+
+.tasks-phone--rooms-view .tasks-calendar-shell {
+  display: none;
+}
 
 .tasks-calendar-wrap {
   margin: 0 12px;
@@ -277,6 +290,10 @@
   margin-bottom: 18px;
 }
 
+.tasks-sort-wrap {
+  position: relative;
+}
+
 .tasks-sort-btn {
   display: inline-flex;
   align-items: center;
@@ -289,6 +306,58 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   cursor: pointer;
+}
+
+.tasks-sort-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 220px;
+  padding: 6px;
+  margin: 0;
+  list-style: none;
+  background: var(--tasks-card);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(17, 24, 39, 0.12);
+  z-index: 30;
+}
+
+.tasks-sort-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tasks-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tasks-sort-menu__item:hover {
+  background: rgba(0, 86, 164, 0.06);
+}
+
+.tasks-sort-menu__item--active {
+  color: var(--tasks-blue);
+  background: rgba(0, 86, 164, 0.08);
+}
+
+.tasks-sort-menu__hint {
+  font-weight: 500;
+  color: var(--tasks-muted);
+  font-size: 0.75rem;
+}
+
+.room-detail-heading-row .tasks-sort-wrap {
+  flex-shrink: 0;
 }
 
 /* ——— Room accordion ——— */
@@ -386,6 +455,10 @@
   background: linear-gradient(90deg, #fde68a, var(--tasks-warn-fill));
 }
 
+.tasks-meter__fill--good {
+  background: linear-gradient(90deg, #bbf7d0, #4ade80);
+}
+
 .tasks-meter__label {
   margin: 6px 0 0;
   font-size: 0.75rem;
@@ -399,6 +472,10 @@
 
 .tasks-meter__label--warn {
   color: #b45309;
+}
+
+.tasks-meter__label--good {
+  color: #15803d;
 }
 
 .tasks-card__dots {
@@ -426,6 +503,164 @@
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--tasks-muted);
+}
+
+/* ——— By Rooms / Room Dashboard ——— */
+
+.tasks-scroll--rooms {
+  background: #ffffff;
+  margin: 0 12px;
+  margin-top: -18px;
+  padding: 20px 14px calc(var(--tab-h) + var(--safe-bottom) + 88px);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 1;
+  min-height: 60vh;
+}
+
+.tasks-phone--rooms-view .tasks-scroll--rooms {
+  margin: 0;
+  margin-top: 0;
+  padding-top: 16px;
+  padding-left: 18px;
+  padding-right: 18px;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.rooms-dash__title {
+  margin: 8px 4px 14px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--tasks-text);
+}
+
+.rooms-dash__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.room-tile {
+  background: var(--tasks-card);
+  border-radius: var(--radius-card);
+  padding: 14px 12px 12px;
+  box-shadow: 0 4px 18px rgba(17, 24, 39, 0.07);
+  border: none;
+  text-align: left;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-tile--add {
+  align-items: center;
+  justify-content: center;
+  min-height: 132px;
+  border: 2px dashed #c4c9d1;
+  background: #fafafa;
+  box-shadow: none;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.room-tile--add:hover {
+  border-color: var(--tasks-teal);
+  background: rgba(69, 177, 184, 0.06);
+}
+
+a.room-tile {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+a.room-tile:hover {
+  box-shadow: 0 8px 28px rgba(17, 24, 39, 0.1);
+}
+
+a.room-tile:focus-visible {
+  outline: 2px solid var(--tasks-blue);
+  outline-offset: 2px;
+}
+
+.room-tile__plus {
+  font-size: 2.25rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #9ca3af;
+}
+
+.room-tile__name {
+  margin: 0 0 6px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--tasks-text);
+}
+
+.room-tile__meta {
+  margin: 0 0 auto;
+  font-size: 0.75rem;
+  color: var(--tasks-muted);
+  line-height: 1.35;
+}
+
+.room-tile__bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.room-tile__tasks {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--tasks-text);
+}
+
+.room-ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+}
+
+.room-ring__svg {
+  display: block;
+}
+
+.room-ring__arc {
+  fill: none;
+}
+
+.room-ring__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--tasks-text);
+  pointer-events: none;
+}
+
+@media (max-width: 360px) {
+  .rooms-dash__grid {
+    gap: 10px;
+  }
+
+  .room-tile {
+    padding: 12px 10px 10px;
+    min-height: 124px;
+  }
 }
 
 /* ——— FAB ——— */
