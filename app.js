@@ -478,7 +478,7 @@
     els.viewAll().forEach((a) => {
       a.addEventListener("click", (ev) => {
         ev.preventDefault();
-        setTab("tasks");
+        window.location.href = "tasks.html";
       });
     });
 

@@ -632,11 +632,14 @@ button {
   opacity: 1;
 }
 
-.tab-bar button.tab-bar__item {
+.tab-bar button.tab-bar__item,
+.tab-bar a.tab-bar__item {
   border: none;
   background: transparent;
   font-family: inherit;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* ——— Panels (tabs) ——— */

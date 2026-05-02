@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contacts — FullSweep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="contact.css" />
+  </head>
+  <body class="contact-body">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="sidebar-brand">
+          <a href="contacts.html" class="sidebar-brand-link">
+            <span class="sidebar-logo" aria-hidden="true"></span>
+            <span class="sidebar-title">FullSweep</span>
+          </a>
+        </div>
+        <nav class="sidebar-nav">
+          <a class="nav-item" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            Dashboard
+          </a>
+          <a class="nav-item nav-item--active" href="contacts.html" aria-current="page">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Contacts
+          </a>
+          <a class="nav-item" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            Lists
+          </a>
+          <a class="nav-item" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            Campaigns
+          </a>
+          <a class="nav-item" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Reports
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <a class="nav-item sidebar-settings" href="#">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+            Settings
+          </a>
+          <div class="user-chip">
+            <span class="user-avatar" aria-hidden="true"></span>
+            <span class="user-name">Jane Doe</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <header class="app-topbar">
+          <nav class="breadcrumbs breadcrumbs--solo" aria-label="Breadcrumb">
+            <span class="breadcrumbs-current">Contacts</span>
+          </nav>
+          <div class="search-wrap">
+            <label class="search-field">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="search" id="contact-search" placeholder="Search contacts..." autocomplete="off" />
+            </label>
+          </div>
+          <div class="topbar-actions">
+            <button type="button" class="icon-btn" aria-label="Notifications">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+            <button type="button" class="icon-btn" aria-label="Help">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="contacts-list-page">
+          <header class="list-page-header">
+            <div>
+              <h1 class="list-page-title">Contacts</h1>
+              <p class="list-page-meta"><span id="visible-count">6</span> of <span id="total-count">6</span> contacts</p>
+            </div>
+            <button type="button" class="btn-dash btn-dash--primary" id="btn-add-contact">Add contact</button>
+          </header>
+
+          <div class="contacts-toolbar">
+            <div class="filter-chips" role="tablist" aria-label="Filter contacts">
+              <button type="button" class="chip chip--active" data-filter="all" aria-selected="true">All</button>
+              <button type="button" class="chip" data-filter="active" aria-selected="false">Active</button>
+              <button type="button" class="chip" data-filter="nurture" aria-selected="false">Nurture</button>
+              <button type="button" class="chip" data-filter="inactive" aria-selected="false">Inactive</button>
+            </div>
+            <div class="toolbar-sort">
+              <label class="sort-label" for="sort-select">Sort</label>
+              <select class="sort-select" id="sort-select">
+                <option value="name">Name</option>
+                <option value="company">Company</option>
+                <option value="recent">Recently updated</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="contacts-table-card">
+            <div class="contacts-table-head" aria-hidden="true">
+              <span class="th th-name">Name</span>
+              <span class="th th-email">Email</span>
+              <span class="th th-company">Company</span>
+              <span class="th th-status">Status</span>
+              <span class="th th-go"></span>
+            </div>
+            <ul class="contacts-rows" id="contacts-rows">
+              <li>
+                <a class="contact-row" href="contact.html" data-status="active" data-name="courtney henry" data-company="stripe" data-email="courtney.henry@example.com" data-updated="2024-10-28">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--1" aria-hidden="true">CH</span>
+                    <span class="contact-row__name">Courtney Henry</span>
+                  </span>
+                  <span class="contact-row__email">courtney.henry@example.com</span>
+                  <span class="contact-row__company">Stripe</span>
+                  <span class="contact-row__status"><span class="badge badge--success">Active</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="contact-row" href="#" data-status="active" data-name="marcus chen" data-company="notion" data-email="marcus.chen@example.com" data-updated="2024-10-25">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--2" aria-hidden="true">MC</span>
+                    <span class="contact-row__name">Marcus Chen</span>
+                  </span>
+                  <span class="contact-row__email">marcus.chen@example.com</span>
+                  <span class="contact-row__company">Notion</span>
+                  <span class="contact-row__status"><span class="badge badge--success">Active</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="contact-row" href="#" data-status="nurture" data-name="sarah jenkins" data-company="global logistics" data-email="sarah.j@example.com" data-updated="2024-10-20">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--3" aria-hidden="true">SJ</span>
+                    <span class="contact-row__name">Sarah Jenkins</span>
+                  </span>
+                  <span class="contact-row__email">sarah.j@example.com</span>
+                  <span class="contact-row__company">Global Logistics</span>
+                  <span class="contact-row__status"><span class="badge badge--nurture">Nurture</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="contact-row" href="#" data-status="active" data-name="alex rivera" data-company="vercel" data-email="alex.r@example.com" data-updated="2024-10-29">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--4" aria-hidden="true">AR</span>
+                    <span class="contact-row__name">Alex Rivera</span>
+                  </span>
+                  <span class="contact-row__email">alex.r@example.com</span>
+                  <span class="contact-row__company">Vercel</span>
+                  <span class="contact-row__status"><span class="badge badge--success">Active</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="contact-row" href="#" data-status="inactive" data-name="jordan lee" data-company="" data-email="jordan.lee@example.com" data-updated="2024-09-01">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--5" aria-hidden="true">JL</span>
+                    <span class="contact-row__name">Jordan Lee</span>
+                  </span>
+                  <span class="contact-row__email">jordan.lee@example.com</span>
+                  <span class="contact-row__company">—</span>
+                  <span class="contact-row__status"><span class="badge badge--inactive">Inactive</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a class="contact-row" href="#" data-status="active" data-name="taylor brooks" data-company="shopify" data-email="taylor.brooks@example.com" data-updated="2024-10-27">
+                  <span class="contact-row__person">
+                    <span class="contact-avatar-sm contact-avatar-sm--6" aria-hidden="true">TB</span>
+                    <span class="contact-row__name">Taylor Brooks</span>
+                  </span>
+                  <span class="contact-row__email">taylor.brooks@example.com</span>
+                  <span class="contact-row__company">Shopify</span>
+                  <span class="contact-row__status"><span class="badge badge--success">Active</span></span>
+                  <span class="contact-row__chev" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6" /></svg>
+                  </span>
+                </a>
+              </li>
+            </ul>
+            <p class="contacts-empty" id="contacts-empty" hidden>No contacts match your filters.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="contacts.js" defer></script>
+  </body>
+</html>
