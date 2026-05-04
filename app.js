@@ -7,9 +7,9 @@
   const DAY_MS = 24 * 60 * 60 * 1000;
 
   const defaultTasks = () => [
-    { id: "t1", title: "Wash the dishes", when: "Today, 10:12am", completedAt: null },
-    { id: "t2", title: "Vacuum living room", when: "Today, 2:00pm", completedAt: null },
-    { id: "t3", title: "Take out recycling", when: "Tomorrow, 8:00am", completedAt: null },
+    { id: "t1", title: "Wash the dishes", when: "Today, 10:12am", completedAt: null, room: "kitchen" },
+    { id: "t2", title: "Vacuum living room", when: "Today, 2:00pm", completedAt: null, room: "living-room" },
+    { id: "t3", title: "Take out recycling", when: "Tomorrow, 8:00am", completedAt: null, room: "kitchen" },
   ];
 
   function loadState() {
@@ -37,6 +37,7 @@
         headline: "Vacuum Floor",
         subtitle: "Kitchen 3:30pm",
         showSchedule: false,
+        roomSlug: "kitchen",
       },
       {
         id: "seed-bedroom-status",
@@ -46,6 +47,7 @@
         headline: "Bedroom is only 30% clean...",
         subtitle: "Is the area messy?",
         showSchedule: true,
+        roomSlug: "bedroom",
       },
       {
         id: "seed-bed-read",
@@ -55,6 +57,7 @@
         headline: "Replace Bed Sheets",
         subtitle: "Bedroom 10:12pm",
         showSchedule: false,
+        roomSlug: "bedroom",
       },
     ];
   }
@@ -136,7 +139,6 @@
     dustFill: () => document.getElementById("dust-fill"),
     dustLabel: () => document.getElementById("dust-label"),
     bedroomMeta: () => document.getElementById("bedroom-meta"),
-    btnQuickClean: () => document.getElementById("btn-quick-clean"),
     toastRoot: () => document.getElementById("toast-root"),
     focusOverlay: () => document.getElementById("focus-overlay"),
     focusTitle: () => document.getElementById("focus-task-label"),
@@ -215,10 +217,49 @@
     return state.tasks.filter((t) => !t.completedAt);
   }
 
+  const ROOM_PAGE_SLUGS = new Set(["bedroom", "bathroom", "kitchen", "living-room"]);
+
+  function inferRoomSlugFromText(text) {
+    if (!text || typeof text !== "string") return "";
+    const pairs = [
+      ["living-room", /\bliving\s+room\b/i],
+      ["dining-room", /\bdining\s+room\b/i],
+      ["kitchen", /\bkitchen\b/i],
+      ["bathroom", /\bbathroom\b/i],
+      ["bedroom", /\bbedroom\b/i],
+    ];
+    for (const [slug, re] of pairs) {
+      if (re.test(text)) return slug;
+    }
+    return "";
+  }
+
+  function roomSlugForTask(task, titleFallback) {
+    if (task && typeof task.room === "string" && task.room.trim()) {
+      return task.room.trim().toLowerCase();
+    }
+    return inferRoomSlugFromText(titleFallback || "");
+  }
+
+  function goToTaskHrefForNotif(n) {
+    if (!n || typeof n !== "object") return "tasks.html#rooms";
+    const explicit =
+      typeof n.roomSlug === "string" && n.roomSlug.trim() ? n.roomSlug.trim().toLowerCase() : "";
+    const slug =
+      explicit || inferRoomSlugFromText(n.subtitle || "") || inferRoomSlugFromText(n.headline || "");
+    if (slug && ROOM_PAGE_SLUGS.has(slug)) {
+      return `room.html?room=${encodeURIComponent(slug)}`;
+    }
+    return "tasks.html#rooms";
+  }
+
   function appendInboxForEvent(ev) {
     if (!Array.isArray(state.inbox)) state.inbox = [];
     const nid = "n" + now() + Math.random().toString(36).slice(2, 9);
     if (ev.type === "task_complete") {
+      const task = ev.taskId ? state.tasks.find((x) => x.id === ev.taskId) : null;
+      const fromEv = typeof ev.room === "string" && ev.room.trim() ? ev.room.trim().toLowerCase() : "";
+      const roomSlug = fromEv || roomSlugForTask(task, ev.title || "");
       state.inbox.unshift({
         id: nid,
         at: now(),
@@ -227,8 +268,12 @@
         headline: ev.title || "Task",
         subtitle: "Marked complete from home",
         showSchedule: false,
+        roomSlug: roomSlug || undefined,
       });
     } else if (ev.type === "focus_session") {
+      const task = ev.taskId ? state.tasks.find((x) => x.id === ev.taskId) : null;
+      const fromEv = typeof ev.room === "string" && ev.room.trim() ? ev.room.trim().toLowerCase() : "";
+      const roomSlug = fromEv || roomSlugForTask(task, task?.title || "");
       state.inbox.unshift({
         id: nid,
         at: now(),
@@ -237,8 +282,11 @@
         headline: "Focus session",
         subtitle: `${ev.minutes || 0} min logged`,
         showSchedule: false,
+        roomSlug: roomSlug || undefined,
       });
     } else if (ev.type === "room_clean") {
+      const raw = typeof ev.room === "string" ? ev.room : "bedroom";
+      const roomSlug = inferRoomSlugFromText(raw) || raw.toLowerCase().replace(/\s+/g, "-");
       state.inbox.unshift({
         id: nid,
         at: now(),
@@ -247,6 +295,7 @@
         headline: "Bedroom quick clean",
         subtitle: "Logged from your home dashboard",
         showSchedule: true,
+        roomSlug: roomSlug || undefined,
       });
     }
   }
@@ -337,7 +386,7 @@
     const t = pending[state.carouselIndex];
     if (!t) return;
     t.completedAt = now();
-    pushEvent({ type: "task_complete", taskId: t.id, title: t.title });
+    pushEvent({ type: "task_complete", taskId: t.id, title: t.title, room: t.room });
     state.carouselIndex = 0;
     saveState(state);
     showToast(`Nice — “${t.title}” is done.`);
@@ -356,26 +405,17 @@
     renderCarousel();
   }
 
-  function openFocus() {
+  function goToTasksFocusSession() {
     const pending = pendingTasks();
     if (pending.length === 0) return;
     const t = pending[state.carouselIndex];
-    const overlay = els.focusOverlay();
-    const lab = els.focusTitle();
-    if (lab) lab.textContent = t.title;
-    focusRemaining = FOCUS_SECONDS_DEFAULT;
-    focusRunning = false;
-    updateFocusDisplay();
-    if (els.focusStart()) els.focusStart().style.display = "inline-flex";
-    if (els.focusDone()) els.focusDone().style.display = "none";
-    if (overlay) {
-      overlay.classList.add("is-open");
-      overlay.setAttribute("aria-hidden", "false");
+    if (!t) return;
+    try {
+      sessionStorage.setItem("fullsweep_focus_intent", JSON.stringify({ title: t.title }));
+    } catch (_) {
+      /* storage blocked */
     }
-    if (focusInterval) {
-      clearInterval(focusInterval);
-      focusInterval = null;
-    }
+    window.location.href = "tasks.html#focus-from-home";
   }
 
   function closeFocus() {
@@ -417,7 +457,7 @@
         const pending = pendingTasks();
         const t = pending[state.carouselIndex];
         const minutes = Math.round(FOCUS_SECONDS_DEFAULT / 60);
-        pushEvent({ type: "focus_session", minutes, taskId: t ? t.id : null });
+        pushEvent({ type: "focus_session", minutes, taskId: t ? t.id : null, room: t ? t.room : null });
         renderStats();
         renderActivity();
         showToast(`Focus block complete — ${minutes} min logged.`);
@@ -426,17 +466,6 @@
         }
       }
     }, 1000);
-  }
-
-  function quickCleanBedroom() {
-    state.bedroomDust = Math.max(0, state.bedroomDust - 35);
-    const meta = els.bedroomMeta();
-    if (meta) meta.textContent = "cleaned just now";
-    pushEvent({ type: "room_clean", room: "bedroom" });
-    saveState(state);
-    renderDust();
-    renderActivity();
-    showToast("Bedroom freshened up!");
   }
 
   function showToast(message) {
@@ -477,7 +506,7 @@
           showToast("Task reopened.");
         } else {
           t.completedAt = now();
-          pushEvent({ type: "task_complete", taskId: t.id, title: t.title });
+          pushEvent({ type: "task_complete", taskId: t.id, title: t.title, room: t.room });
           showToast(`Done: ${t.title}`);
         }
         saveState(state);
@@ -582,6 +611,55 @@
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
   }
 
+  function closeScheduleAddPicker() {
+    document.getElementById("schedule-add-picker")?.setAttribute("hidden", "");
+  }
+
+  function positionScheduleAddPicker(anchor) {
+    const root = document.getElementById("schedule-add-picker");
+    const menu = root?.querySelector(".schedule-add-picker__menu");
+    if (!root || !menu || !anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    const margin = 12;
+    const tabReserve = 88;
+    requestAnimationFrame(() => {
+      const mw = menu.offsetWidth;
+      const mh = menu.offsetHeight;
+      let left = rect.left + rect.width / 2 - mw / 2;
+      let top = rect.top - mh - margin;
+      left = Math.max(margin, Math.min(left, window.innerWidth - mw - margin));
+      if (top < margin) top = rect.bottom + margin;
+      const maxTop = window.innerHeight - mh - margin - tabReserve;
+      if (top > maxTop) top = Math.max(margin, maxTop);
+      menu.style.left = `${Math.round(left)}px`;
+      menu.style.top = `${Math.round(top)}px`;
+    });
+  }
+
+  function openScheduleAddPicker(anchor) {
+    const root = document.getElementById("schedule-add-picker");
+    if (!root) return;
+    root.removeAttribute("hidden");
+    positionScheduleAddPicker(anchor);
+  }
+
+  function bindScheduleAddPicker() {
+    const root = document.getElementById("schedule-add-picker");
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = "1";
+    root.addEventListener("click", (e) => {
+      if (e.target.classList.contains("schedule-add-picker__shade")) closeScheduleAddPicker();
+    });
+    root.querySelectorAll("[data-schedule-add]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const kind = btn.getAttribute("data-schedule-add");
+        closeScheduleAddPicker();
+        window.location.href = kind === "recurring" ? "tasks.html#add-recurring" : "tasks.html#add-onetime";
+      });
+    });
+  }
+
   function setScheduleView(view) {
     scheduleView = view === "week" || view === "month" ? view : "day";
     const titleEl = document.getElementById("schedule-view-title");
@@ -626,7 +704,10 @@
     });
     document.querySelector(".schedule-body")?.addEventListener("click", (e) => {
       const add = e.target.closest(".schedule-block__add");
-      if (add) showToast("Pick a time — task picker coming soon.");
+      if (!add) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openScheduleAddPicker(add);
     });
     const monthPanel = document.getElementById("schedule-view-month");
     if (monthPanel && !monthPanel.dataset.monthNavBound) {
@@ -681,7 +762,7 @@
     if (sorted.length === 0) {
       const p = document.createElement("p");
       p.className = "activity-empty";
-      p.textContent = "No notifications yet — complete a task, run focus mode, or log a quick clean.";
+      p.textContent = "No notifications yet — complete a task or run focus mode.";
       root.appendChild(p);
       return;
     }
@@ -732,6 +813,7 @@
   }
 
   function setTab(name) {
+    closeScheduleAddPicker();
     const tab = name === "schedule" || name === "activity" || name === "home" ? name : "home";
     els.tabs().forEach((btn) => {
       const on = btn.getAttribute("data-tab") === tab;
@@ -780,8 +862,13 @@
         saveState(state);
       }
       if (action === "go-task") {
+        let href = "tasks.html#rooms";
+        if (id && Array.isArray(state.inbox)) {
+          const notif = state.inbox.find((x) => x.id === id);
+          if (notif) href = goToTaskHrefForNotif(notif);
+        }
         renderActivity();
-        window.location.href = "tasks.html";
+        window.location.href = href;
         return;
       }
       if (action === "schedule") {
@@ -797,8 +884,7 @@
     if (prev) prev.addEventListener("click", () => shiftCarousel(-1));
     if (next) next.addEventListener("click", () => shiftCarousel(1));
     if (els.btnComplete()) els.btnComplete().addEventListener("click", completeCurrentTask);
-    if (els.btnFocus()) els.btnFocus().addEventListener("click", openFocus);
-    if (els.btnQuickClean()) els.btnQuickClean().addEventListener("click", quickCleanBedroom);
+    if (els.btnFocus()) els.btnFocus().addEventListener("click", goToTasksFocusSession);
     if (els.focusStart()) els.focusStart().addEventListener("click", startFocusTimer);
     if (els.focusClose()) els.focusClose().addEventListener("click", closeFocus);
     if (els.focusDone()) els.focusDone().addEventListener("click", closeFocus);
@@ -809,6 +895,7 @@
 
     bindActivityInbox();
     bindSchedule();
+    bindScheduleAddPicker();
 
     els.tabs().forEach((btn) => {
       btn.addEventListener("click", () => setTab(btn.getAttribute("data-tab") || "home"));
@@ -826,6 +913,13 @@
 
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape" && els.focusOverlay()?.classList.contains("is-open")) closeFocus();
+      if (ev.key === "Escape") {
+        const sap = document.getElementById("schedule-add-picker");
+        if (sap && !sap.hasAttribute("hidden")) {
+          closeScheduleAddPicker();
+          return;
+        }
+      }
       if (ev.key === "Escape" && document.getElementById("schedule-header")?.classList.contains("schedule-header--open")) {
         closeSchedulePicker();
       }

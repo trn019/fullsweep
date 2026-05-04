@@ -60,6 +60,15 @@ button {
   background: var(--page-bg);
   position: relative;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.phone__surface {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .phone--schedule .top-banner {
@@ -69,6 +78,7 @@ button {
 /* ——— Curved header ——— */
 
 .top-banner {
+  flex-shrink: 0;
   background: linear-gradient(165deg, #055bad 0%, var(--blue) 55%, #003d82 100%);
   padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 52px;
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
@@ -267,6 +277,8 @@ button {
   cursor: pointer;
   align-self: flex-start;
   transition: background 0.15s;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn-inline:hover {
@@ -602,7 +614,8 @@ button {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  z-index: 100;
+  z-index: 400;
+  flex-shrink: 0;
 }
 
 .tab-bar__item {
@@ -650,6 +663,8 @@ button {
 
 .panels {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .panel.sub-panel {
@@ -1269,6 +1284,86 @@ button {
   filter: brightness(1.05);
 }
 
+/* Schedule — add task picker (one-time / recurring) */
+.schedule-add-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 450;
+  pointer-events: none;
+}
+
+.schedule-add-picker:not([hidden]) {
+  pointer-events: auto;
+}
+
+.schedule-add-picker__shade {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(15, 61, 122, 0.14);
+  cursor: pointer;
+}
+
+.schedule-add-picker__menu {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 228px;
+  max-width: min(280px, calc(100vw - 32px));
+  animation: scheduleAddPickerIn 0.2s ease;
+}
+
+@keyframes scheduleAddPickerIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.schedule-add-picker__opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 999px;
+  background: #c5e8ec;
+  color: #111827;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 86, 164, 0.14);
+  text-align: left;
+}
+
+.schedule-add-picker__opt:hover {
+  background: #b2e0e6;
+}
+
+.schedule-add-picker__icon {
+  flex-shrink: 0;
+  color: #0056a4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-add-picker__icon svg {
+  display: block;
+}
+
 /* ——— Activity Feed (in-app notifications) ——— */
 
 .activity-screen {
@@ -1428,7 +1523,7 @@ button {
   left: 50%;
   transform: translateX(-50%);
   width: min(100% - 32px, 430px);
-  z-index: 200;
+  z-index: 600;
   pointer-events: none;
   display: flex;
   flex-direction: column;
@@ -1466,15 +1561,17 @@ button {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  z-index: 150;
+  z-index: 500;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .focus-overlay.is-open {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .focus-modal {
@@ -1528,7 +1625,12 @@ button {
   .phone {
     border-radius: 36px;
     min-height: auto;
+    overflow: visible;
+  }
+
+  .phone__surface {
     overflow: hidden;
+    border-radius: 36px 36px 0 0;
   }
 
   .tab-bar {

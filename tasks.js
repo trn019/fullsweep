@@ -84,7 +84,37 @@
     document.getElementById("panel-rooms")?.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
+  function applyFocusIntentFromHome() {
+    if (window.location.hash !== "#focus-from-home") return;
+    let title = "";
+    try {
+      const raw = sessionStorage.getItem("fullsweep_focus_intent");
+      if (raw) {
+        const o = JSON.parse(raw);
+        if (o && typeof o.title === "string") title = o.title.trim();
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    try {
+      sessionStorage.removeItem("fullsweep_focus_intent");
+    } catch (_) {
+      /* ignore */
+    }
+    try {
+      const base = `${window.location.pathname}${window.location.search}`;
+      history.replaceState(null, "", base);
+    } catch (_) {
+      /* file:// */
+    }
+    closeAutoSanitize();
+    closeFocusMenu();
+    openFocusMenu(title || "Task", 30);
+    startFocusSession();
+  }
+
   window.addEventListener("hashchange", () => {
+    applyFocusIntentFromHome();
     const v = window.location.hash === "#rooms" ? "rooms" : "day";
     applyView(v);
     if (v === "rooms") scrollRoomsPanelIntoView();
@@ -119,7 +149,6 @@
     "Air out pillows",
     "Wash duvet cover",
   ];
-  const roomNames = ["Bathroom", "Bedroom", "Dining Room", "Kitchen", "Living Room"];
 
   let autoSanitizeTargetCard = null;
 
@@ -593,6 +622,21 @@
   document.addEventListener("fullsweep:closeFocusSession", closeFocusSession);
   document.addEventListener("fullsweep:closeFocusBreak", closeFocusBreak);
   document.addEventListener("fullsweep:closeFocusCelebrate", closeFocusCelebrate);
+
+  document.addEventListener("fullsweep:openFocusFromTask", (ev) => {
+    const d = ev.detail && typeof ev.detail === "object" ? ev.detail : {};
+    const rawTitle = typeof d.title === "string" ? d.title.trim() : "";
+    const title = rawTitle || "Task";
+    const minutes = typeof d.minutes === "number" && Number.isFinite(d.minutes) && d.minutes > 0 ? d.minutes : 30;
+    const autoBegin = d.autoBegin === true;
+    closeAutoSanitize();
+    closeFocusMenu();
+    openFocusMenu(title, minutes);
+    if (autoBegin) {
+      startFocusSession();
+    }
+  });
+
   populateFocusEditWheels();
 
   document.addEventListener("fullsweep:closeAutoSanitize", closeAutoSanitize);
@@ -913,16 +957,9 @@
     closeRescheduleScreen();
   });
 
-  document.querySelectorAll(".tasks-shuffle:not(.tasks-shuffle--rooms)").forEach((btn) => {
+  document.querySelectorAll(".tasks-shuffle").forEach((btn) => {
     btn.addEventListener("click", () => {
       openAutoSanitize();
-    });
-  });
-
-  document.querySelectorAll(".tasks-shuffle--rooms").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const pick = roomNames[Math.floor(Math.random() * roomNames.length)];
-      toast(`How about the ${pick}?`);
     });
   });
 
@@ -1405,6 +1442,8 @@
 
   renderStrip();
   applyTaskDayFilter();
+
+  applyFocusIntentFromHome();
   }
 
   if (document.readyState === "loading") {

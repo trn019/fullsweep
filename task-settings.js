@@ -124,7 +124,15 @@
     }
     if (action === "focus") {
       removeActionBar();
-      toast(`Focus mode — ${title} (timer coming soon)`);
+      if (document.getElementById("panel-focus-menu")) {
+        document.dispatchEvent(
+          new CustomEvent("fullsweep:openFocusFromTask", {
+            detail: { title, minutes: 30, autoBegin: true },
+          }),
+        );
+        return;
+      }
+      toast(`Focus mode — open Tasks to start a timer for ${title}.`);
       return;
     }
     if (action === "edit") {

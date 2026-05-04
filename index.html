@@ -15,6 +15,7 @@
   </head>
   <body class="app">
     <div class="phone" id="app-phone">
+      <div class="phone__surface">
       <header class="top-banner">
         <div class="top-banner__inner">
           <p class="greeting" id="greeting">Good morning, John!</p>
@@ -85,7 +86,7 @@
                   </div>
                   <p class="dust-meter__label" id="dust-label">Getting dusty...</p>
                 </div>
-                <button type="button" class="btn-inline" id="btn-quick-clean">Log quick clean</button>
+                <a class="btn-inline" href="tasks.html#rooms">Go to Rooms</a>
               </div>
             </article>
           </section>
@@ -469,6 +470,7 @@
           <div class="activity-screen__inbox" id="activity-inbox" aria-live="polite"></div>
         </main>
       </div>
+      </div>
 
       <nav class="tab-bar" aria-label="Main">
         <button type="button" class="tab-bar__item tab-bar__item--active" data-tab="home" aria-current="page">
@@ -505,6 +507,35 @@
           <span>Activity</span>
         </button>
       </nav>
+    </div>
+
+    <div id="schedule-add-picker" class="schedule-add-picker" hidden>
+      <button type="button" class="schedule-add-picker__shade" aria-label="Dismiss"></button>
+      <div class="schedule-add-picker__menu" role="menu" aria-label="Add task to schedule">
+        <button type="button" class="schedule-add-picker__opt" role="menuitem" data-schedule-add="onetime">
+          <span class="schedule-add-picker__label">One-time Task</span>
+          <span class="schedule-add-picker__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+              <path d="M16 5v6M13 8h6" stroke-linecap="round" />
+            </svg>
+          </span>
+        </button>
+        <button type="button" class="schedule-add-picker__opt" role="menuitem" data-schedule-add="recurring">
+          <span class="schedule-add-picker__label">Recurring Task</span>
+          <span class="schedule-add-picker__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          </span>
+        </button>
+      </div>
     </div>
 
     <div class="toast-root" id="toast-root" aria-live="polite"></div>

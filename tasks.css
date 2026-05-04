@@ -49,11 +49,19 @@
   background: var(--tasks-bg);
   position: relative;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-phone__surface {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ——— Blue header + tabs ——— */
 
 .tasks-hero {
+  flex-shrink: 0;
   background: var(--tasks-blue);
   padding: calc(12px + env(safe-area-inset-top, 0px)) 0 0;
   position: relative;
@@ -101,6 +109,7 @@
 .tasks-calendar-shell {
   display: block;
   position: relative;
+  flex-shrink: 0;
   /* Sit above #panel-day so expanded grid is not painted behind the scroll area */
   z-index: 4;
 }
@@ -897,7 +906,7 @@ a.room-tile:focus-visible {
   left: 50%;
   transform: translateX(-50%);
   width: min(100% - 32px, 430px);
-  z-index: 60;
+  z-index: 600;
   pointer-events: none;
   display: flex;
   justify-content: center;
@@ -938,7 +947,8 @@ a.room-tile:focus-visible {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  z-index: 40;
+  z-index: 400;
+  flex-shrink: 0;
 }
 
 .tasks-page .tab-bar a {
@@ -2878,7 +2888,12 @@ body.tasks-focus-celebrate-active {
   .tasks-phone {
     border-radius: 36px;
     min-height: auto;
+    overflow: visible;
+  }
+
+  .tasks-phone__surface {
     overflow: hidden;
+    border-radius: 36px 36px 0 0;
   }
 
   .tasks-page .tab-bar {

@@ -816,4 +816,26 @@
     }
     closeFabMenu();
   });
+
+  function clearAddTaskIntentFromUrl() {
+    try {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch (_) {
+      /* file:// */
+    }
+  }
+
+  function applyAddTaskIntentFromHash() {
+    const h = window.location.hash;
+    if (h === "#add-onetime") {
+      openOnetimeFlow();
+      clearAddTaskIntentFromUrl();
+    } else if (h === "#add-recurring") {
+      openRecurringFlow();
+      clearAddTaskIntentFromUrl();
+    }
+  }
+
+  applyAddTaskIntentFromHash();
+  window.addEventListener("hashchange", applyAddTaskIntentFromHash);
 })();

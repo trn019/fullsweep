@@ -18,6 +18,7 @@
   </head>
   <body class="tasks-page">
     <div class="tasks-phone">
+      <div class="tasks-phone__surface">
       <header class="tasks-hero">
         <div class="tasks-view-tabs" role="tablist" aria-label="Task view">
           <button type="button" class="tasks-view-tab tasks-view-tab--active" role="tab" aria-selected="true" data-view="day">
@@ -983,7 +984,7 @@
                 <p>
                   Overwhelmed or don’t know where to start? Let me choose a random task for you!
                 </p>
-                <button type="button" class="tasks-shuffle tasks-shuffle--rooms" aria-label="Pick random task">
+                <button type="button" class="tasks-shuffle" aria-label="Pick random task">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                     <polyline points="16 3 21 3 21 8" />
                     <line x1="21" y1="3" x2="14" y2="10" />
@@ -1080,6 +1081,7 @@
             </div>
           </section>
         </main>
+      </div>
       </div>
 
       <div class="tasks-fab-cluster" id="tasks-fab-cluster">

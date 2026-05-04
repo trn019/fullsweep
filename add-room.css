@@ -8,7 +8,7 @@
   bottom: calc(var(--tab-h, 72px) + var(--safe-bottom, env(safe-area-inset-bottom, 0px)));
   width: min(100%, 430px);
   max-width: 100vw;
-  z-index: 85;
+  z-index: 500;
   display: flex;
   flex-direction: column;
   background: #e8f0fa;
