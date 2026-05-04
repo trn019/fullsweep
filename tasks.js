@@ -85,19 +85,16 @@
     if (v === "rooms") scrollRoomsPanelIntoView();
   });
 
-  function wireRoomToggle(toggleId) {
-    const toggle = document.getElementById(toggleId);
-    const section = toggle?.closest(".tasks-room");
-    toggle?.addEventListener("click", () => {
-      if (!section) return;
-      const collapsed = section.getAttribute("data-collapsed") === "true";
-      section.setAttribute("data-collapsed", collapsed ? "false" : "true");
-      toggle.setAttribute("aria-expanded", collapsed ? "true" : "false");
-    });
-  }
-
-  wireRoomToggle("toggle-bathroom");
-  wireRoomToggle("toggle-bedroom");
+  const panelDay = document.getElementById("panel-day");
+  panelDay?.addEventListener("click", (e) => {
+    const hdr = e.target.closest("button.tasks-room__header");
+    if (!hdr || !panelDay.contains(hdr)) return;
+    const section = hdr.closest(".tasks-room");
+    if (!section) return;
+    const collapsed = section.getAttribute("data-collapsed") === "true";
+    section.setAttribute("data-collapsed", collapsed ? "false" : "true");
+    hdr.setAttribute("aria-expanded", collapsed ? "true" : "false");
+  });
 
   const dayTasks = ["Clean Sink", "Clean Toilet", "Wash Rugs"];
   const roomNames = ["Bathroom", "Bedroom", "Dining Room", "Kitchen", "Living Room"];
@@ -336,7 +333,8 @@
     }
   }
 
-  expandCalBtn?.addEventListener("click", () => {
+  expandCalBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
     setCalendarExpanded(!calendarExpandedOpen);
   });
 

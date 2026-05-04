@@ -98,6 +98,14 @@
 
 .tasks-calendar-shell {
   display: block;
+  position: relative;
+  /* Sit above #panel-day so expanded grid is not painted behind the scroll area */
+  z-index: 4;
+}
+
+#panel-day {
+  position: relative;
+  z-index: 1;
 }
 
 .tasks-phone--rooms-view .tasks-calendar-shell {
@@ -114,7 +122,7 @@
 .tasks-calendar-card {
   background: var(--tasks-card);
   border-radius: 16px 16px 0 0;
-  padding: 14px 12px 14px 16px;
+  padding: 10px 8px 10px 10px;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
@@ -129,8 +137,10 @@
 
 .tasks-calendar-card__strip {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -146,6 +156,9 @@
 
 .tasks-calendar-expanded {
   width: 100%;
+  position: relative;
+  z-index: 1;
+  background: var(--tasks-card);
 }
 
 .tasks-calendar-expanded[hidden] {
@@ -267,14 +280,15 @@
 
 .tasks-date-scroll {
   flex: 1;
+  min-width: 0;
   display: flex;
-  gap: 10px;
-  min-height: 48px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 2px;
+  min-height: 44px;
   align-items: center;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  overflow: hidden;
+  scroll-snap-type: none;
 }
 
 .tasks-date-scroll::-webkit-scrollbar {
@@ -282,27 +296,37 @@
 }
 
 .tasks-date-chip {
-  flex-shrink: 0;
-  scroll-snap-align: start;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 14px;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 1px;
   border: none;
   border-radius: var(--radius-date-pill);
   background: transparent;
   cursor: pointer;
-  font-size: 0.6875rem;
+  font-size: clamp(0.5625rem, 2.6vw, 0.6875rem);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--tasks-muted);
   text-transform: uppercase;
 }
 
+.tasks-date-chip span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 .tasks-date-chip span:last-child {
-  font-size: 1rem;
+  font-size: clamp(0.8125rem, 4.2vw, 1rem);
+  font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 .tasks-date-chip--active {
@@ -317,8 +341,9 @@
 
 .tasks-expand-btn {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  align-self: center;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 12px;
   background: rgba(0, 86, 164, 0.08);
@@ -528,10 +553,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px 12px;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 4px 10px 2px;
   background: none;
   border: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--tasks-text);
