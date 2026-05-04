@@ -31,6 +31,10 @@
   }
 
   function applyView(view) {
+    document.dispatchEvent(new CustomEvent("fullsweep:closeAutoSanitize"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeSelectTime"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeReschedule"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeFocusMenu"));
     const day = document.getElementById("panel-day");
     const rooms = document.getElementById("panel-rooms");
     document.querySelectorAll(".tasks-view-tabs [data-view]").forEach((tab) => {
@@ -106,6 +110,7 @@
     "Flip mattress",
     "Polish fixtures",
     "Vacuum bedroom",
+    "Vacuum Floor",
     "Deep clean grout",
     "Dust blinds",
     "Restock supplies",
@@ -116,10 +121,801 @@
   ];
   const roomNames = ["Bathroom", "Bedroom", "Dining Room", "Kitchen", "Living Room"];
 
+  let autoSanitizeTargetCard = null;
+
+  const CLOCK_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/></svg>`;
+
+  function closeAutoSanitize() {
+    const panel = document.getElementById("panel-auto-sanitize");
+    if (!panel || panel.hidden) return;
+    panel.hidden = true;
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-auto-sanitize-active");
+    phone?.classList.remove("tasks-phone--auto-sanitize");
+    autoSanitizeTargetCard = null;
+  }
+
+  function renderEffortClocks(level) {
+    const el = document.getElementById("auto-sanitize-clocks");
+    if (!el) return;
+    const n = Math.min(3, Math.max(1, level));
+    el.innerHTML = [1, 2, 3]
+      .map((i) => `<span class="auto-sanitize-clock${i <= n ? " auto-sanitize-clock--on" : ""}">${CLOCK_SVG}</span>`)
+      .join("");
+  }
+
+  function effortLevelFromCardForSanitize(card) {
+    const wrap = card.querySelector(".tasks-card__dots");
+    if (wrap) {
+      const lit = wrap.querySelectorAll(".tasks-dot--on").length;
+      if (lit > 0) return Math.min(3, Math.max(1, lit));
+    }
+    const d = parseInt(card.getAttribute("data-effort") || "2", 10);
+    return Math.min(3, Math.max(1, d || 2));
+  }
+
+  function getVisibleDayTaskCards() {
+    if (!panelDay) return [];
+    return Array.from(panelDay.querySelectorAll(".tasks-room__body .tasks-card")).filter((c) => !c.hidden);
+  }
+
+  function openAutoSanitize() {
+    closeFocusMenu();
+    document.dispatchEvent(new CustomEvent("fullsweep:openAutoSanitize"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeAddRoom"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeTaskActions"));
+    const titleEl = document.getElementById("auto-sanitize-task-title");
+    const panel = document.getElementById("panel-auto-sanitize");
+    if (!titleEl || !panel) return;
+    autoSanitizeTargetCard = null;
+    const cards = getVisibleDayTaskCards();
+    if (cards.length) {
+      autoSanitizeTargetCard = cards[Math.floor(Math.random() * cards.length)];
+      titleEl.textContent =
+        autoSanitizeTargetCard.querySelector(".tasks-card__title")?.textContent?.trim() || "Task";
+      renderEffortClocks(effortLevelFromCardForSanitize(autoSanitizeTargetCard));
+    } else {
+      titleEl.textContent = dayTasks[Math.floor(Math.random() * dayTasks.length)];
+      renderEffortClocks(2);
+    }
+    panel.hidden = false;
+    panel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-auto-sanitize-active");
+    phone?.classList.add("tasks-phone--auto-sanitize");
+    document.getElementById("auto-sanitize-close")?.focus({ preventScroll: true });
+  }
+
+  const FOCUS_EDIT_STEP = 44;
+  const FOCUS_MIN_SECONDS = 60;
+  const FOCUS_MAX_SECONDS = 180 * 60;
+  let focusMenuTotalSeconds = 30 * 60;
+  let focusMenuRunInterval = null;
+  let focusMenuRunSeconds = 0;
+  let focusSessionInitialSeconds = 0;
+  let focusSessionPaused = false;
+  const FOCUS_SESSION_RING_LEN = 2 * Math.PI * 92;
+  const FOCUS_BREAK_DURATION_SEC = 300;
+  let focusBreakRemainingSec = 0;
+  let focusBreakInitialSec = FOCUS_BREAK_DURATION_SEC;
+  let focusBreakInterval = null;
+  let focusBreakPaused = false;
+
+  function stopFocusTimer() {
+    if (focusMenuRunInterval) {
+      window.clearInterval(focusMenuRunInterval);
+      focusMenuRunInterval = null;
+    }
+  }
+
+  function resetFocusMenuViews() {
+    const panel = document.getElementById("panel-focus-menu");
+    panel?.classList.remove("tasks-focus-menu--running");
+    stopFocusTimer();
+  }
+
+  function closeFocusEditTimer() {
+    const ov = document.getElementById("focus-edit-timer-overlay");
+    if (!ov || ov.hidden) return;
+    ov.hidden = true;
+  }
+
+  function stopFocusBreakTimer() {
+    if (focusBreakInterval) {
+      window.clearInterval(focusBreakInterval);
+      focusBreakInterval = null;
+    }
+  }
+
+  function setFocusBreakPaused(on) {
+    focusBreakPaused = on;
+    const br = document.getElementById("panel-focus-break");
+    const pauseBtn = document.getElementById("focus-break-pause");
+    br?.classList.toggle("tasks-focus-break--paused", on);
+    if (pauseBtn) {
+      pauseBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      pauseBtn.setAttribute("aria-label", on ? "Resume break timer" : "Pause break timer");
+    }
+    const bars = pauseBtn?.querySelector(".tasks-focus-break__pause-icon--bars");
+    const play = pauseBtn?.querySelector(".tasks-focus-break__pause-icon--play");
+    if (on) {
+      bars?.classList.add("tasks-focus-break__pause-icon--hidden");
+      play?.classList.remove("tasks-focus-break__pause-icon--hidden");
+    } else {
+      bars?.classList.remove("tasks-focus-break__pause-icon--hidden");
+      play?.classList.add("tasks-focus-break__pause-icon--hidden");
+    }
+  }
+
+  function updateFocusBreakRing() {
+    const arc = document.getElementById("focus-break-ring-arc");
+    if (!arc || focusBreakInitialSec <= 0) return;
+    const L = FOCUS_SESSION_RING_LEN;
+    const elapsed = 1 - Math.max(0, focusBreakRemainingSec) / focusBreakInitialSec;
+    arc.style.strokeDasharray = String(L);
+    arc.style.strokeDashoffset = String(L * (1 - Math.min(1, Math.max(0, elapsed))));
+  }
+
+  function updateFocusBreakDisplay() {
+    const timeEl = document.getElementById("focus-break-time");
+    if (timeEl) timeEl.textContent = formatFocusSessionClock(focusBreakRemainingSec);
+    updateFocusBreakRing();
+  }
+
+  function closeFocusBreak() {
+    const br = document.getElementById("panel-focus-break");
+    const wasOpen = br?.classList.contains("tasks-focus-break--open");
+    stopFocusBreakTimer();
+    focusBreakPaused = false;
+    if (wasOpen) {
+      setFocusBreakPaused(false);
+      br.classList.remove("tasks-focus-break--open", "tasks-focus-break--paused");
+      br.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("tasks-focus-break-active");
+      phone?.classList.remove("tasks-phone--focus-break");
+      if (document.getElementById("panel-focus-session")?.classList.contains("tasks-focus-session--open")) {
+        setFocusSessionPaused(false);
+      }
+    }
+  }
+
+  function openFocusBreak() {
+    const sep = document.getElementById("panel-focus-session");
+    if (!sep?.classList.contains("tasks-focus-session--open")) return;
+    closeFocusBreak();
+    setFocusSessionPaused(true);
+    focusBreakInitialSec = FOCUS_BREAK_DURATION_SEC;
+    focusBreakRemainingSec = focusBreakInitialSec;
+    focusBreakPaused = false;
+    const br = document.getElementById("panel-focus-break");
+    if (!br) return;
+    setFocusBreakPaused(false);
+    updateFocusBreakDisplay();
+    br.classList.add("tasks-focus-break--open");
+    br.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-focus-break-active");
+    phone?.classList.add("tasks-phone--focus-break");
+    focusBreakInterval = window.setInterval(() => {
+      if (focusBreakPaused) return;
+      focusBreakRemainingSec -= 1;
+      updateFocusBreakDisplay();
+      if (focusBreakRemainingSec <= 0) {
+        stopFocusBreakTimer();
+        toast("Back to your task!");
+        closeFocusBreak();
+      }
+    }, 1000);
+    requestAnimationFrame(() => {
+      document.getElementById("focus-break-pause")?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeFocusSession() {
+    closeFocusBreak();
+    const sep = document.getElementById("panel-focus-session");
+    if (!sep?.classList.contains("tasks-focus-session--open")) return;
+    stopFocusTimer();
+    focusSessionPaused = false;
+    setFocusSessionPaused(false);
+    sep.classList.remove("tasks-focus-session--open", "tasks-focus-session--paused");
+    sep.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-focus-session-active");
+    phone?.classList.remove("tasks-phone--focus-session");
+  }
+
+  function closeFocusCelebrate() {
+    const cel = document.getElementById("panel-focus-celebrate");
+    if (!cel?.classList.contains("tasks-focus-celebrate--open")) return;
+    cel.classList.remove("tasks-focus-celebrate--open");
+    cel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-focus-celebrate-active");
+    phone?.classList.remove("tasks-phone--focus-celebrate");
+  }
+
+  function openFocusCelebrate() {
+    const cel = document.getElementById("panel-focus-celebrate");
+    if (!cel) return;
+    closeFocusCelebrate();
+    cel.classList.add("tasks-focus-celebrate--open");
+    cel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-focus-celebrate-active");
+    phone?.classList.add("tasks-phone--focus-celebrate");
+    requestAnimationFrame(() => {
+      document.getElementById("focus-celebrate-btn")?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeFocusMenu() {
+    closeFocusEditTimer();
+    closeFocusCelebrate();
+    closeFocusSession();
+    const panel = document.getElementById("panel-focus-menu");
+    if (!panel || !panel.classList.contains("tasks-focus-menu--open")) return;
+    resetFocusMenuViews();
+    panel.classList.remove("tasks-focus-menu--open");
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-focus-menu-active");
+    phone?.classList.remove("tasks-phone--focus-menu");
+  }
+
+  function formatFocusDurationPill(total) {
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    if (h === 0 && s === 0) return `${m} Minutes`;
+    if (h === 0) return `${m}m ${s}s`;
+    if (m === 0 && s === 0) return `${h} hour${h === 1 ? "" : "s"}`;
+    return `${h}h ${m}m`;
+  }
+
+  function updateFocusMenuDurationDisplay() {
+    const el = document.getElementById("focus-menu-duration-display");
+    if (el) el.textContent = formatFocusDurationPill(focusMenuTotalSeconds);
+  }
+
+  function readFocusEditWheel(scrollEl, maxIndex) {
+    if (!scrollEl) return 0;
+    const i = Math.round(scrollEl.scrollTop / FOCUS_EDIT_STEP);
+    return Math.min(maxIndex, Math.max(0, i));
+  }
+
+  function setFocusEditWheelScroll(scrollEl, index) {
+    if (!scrollEl) return;
+    scrollEl.style.scrollBehavior = "auto";
+    scrollEl.scrollTop = index * FOCUS_EDIT_STEP;
+    requestAnimationFrame(() => {
+      scrollEl.style.scrollBehavior = "";
+    });
+  }
+
+  function secondsToHMS(total) {
+    let h = Math.floor(total / 3600);
+    let m = Math.floor((total % 3600) / 60);
+    let s = total % 60;
+    if (h >= 3) {
+      h = 3;
+      m = 0;
+      s = 0;
+    }
+    return { h, m, s };
+  }
+
+  function syncFocusEditWheelsFromSeconds(total) {
+    const { h, m, s } = secondsToHMS(Math.min(FOCUS_MAX_SECONDS, Math.max(FOCUS_MIN_SECONDS, total)));
+    setFocusEditWheelScroll(document.getElementById("focus-edit-scroll-hour"), h);
+    setFocusEditWheelScroll(document.getElementById("focus-edit-scroll-min"), m);
+    setFocusEditWheelScroll(document.getElementById("focus-edit-scroll-sec"), s);
+  }
+
+  function readFocusEditSecondsFromWheels() {
+    const hourEl = document.getElementById("focus-edit-scroll-hour");
+    const minEl = document.getElementById("focus-edit-scroll-min");
+    const secEl = document.getElementById("focus-edit-scroll-sec");
+    let h = readFocusEditWheel(hourEl, 3);
+    let m = readFocusEditWheel(minEl, 59);
+    let s = readFocusEditWheel(secEl, 59);
+    let ts = h * 3600 + m * 60 + s;
+    if (ts > FOCUS_MAX_SECONDS) {
+      h = 3;
+      m = 0;
+      s = 0;
+      ts = FOCUS_MAX_SECONDS;
+    }
+    if (ts < FOCUS_MIN_SECONDS) ts = FOCUS_MIN_SECONDS;
+    return ts;
+  }
+
+  function openFocusEditTimer() {
+    const ov = document.getElementById("focus-edit-timer-overlay");
+    if (!ov) return;
+    syncFocusEditWheelsFromSeconds(focusMenuTotalSeconds);
+    ov.hidden = false;
+    requestAnimationFrame(() => {
+      document.getElementById("focus-edit-timer-close")?.focus({ preventScroll: true });
+    });
+  }
+
+  function applyFocusEditTimerSave() {
+    focusMenuTotalSeconds = readFocusEditSecondsFromWheels();
+    updateFocusMenuDurationDisplay();
+    closeFocusEditTimer();
+  }
+
+  let focusEditWheelsInited = false;
+  function populateFocusEditWheels() {
+    if (focusEditWheelsInited) return;
+    const hourEl = document.getElementById("focus-edit-scroll-hour");
+    const minEl = document.getElementById("focus-edit-scroll-min");
+    const secEl = document.getElementById("focus-edit-scroll-sec");
+    if (!hourEl || !minEl || !secEl) return;
+    focusEditWheelsInited = true;
+    hourEl.innerHTML = "";
+    for (let i = 0; i <= 3; i += 1) {
+      const div = document.createElement("div");
+      div.className = "tasks-focus-edit-timer__item";
+      div.textContent = String(i);
+      hourEl.appendChild(div);
+    }
+    for (const el of [minEl, secEl]) {
+      el.innerHTML = "";
+      for (let i = 0; i < 60; i += 1) {
+        const div = document.createElement("div");
+        div.className = "tasks-focus-edit-timer__item";
+        div.textContent = String(i);
+        el.appendChild(div);
+      }
+    }
+    [
+      { el: hourEl, max: 3 },
+      { el: minEl, max: 59 },
+      { el: secEl, max: 59 },
+    ].forEach(({ el, max }) => {
+      const snap = () => {
+        const i = readFocusEditWheel(el, max);
+        setFocusEditWheelScroll(el, i);
+      };
+      el.addEventListener("scrollend", snap);
+      let st;
+      el.addEventListener("scroll", () => {
+        window.clearTimeout(st);
+        st = window.setTimeout(snap, 120);
+      });
+    });
+  }
+
+  function formatFocusSessionClock(sec) {
+    const n = Math.max(0, sec);
+    const h = Math.floor(n / 3600);
+    const m = Math.floor((n % 3600) / 60);
+    const s = n % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  function updateFocusSessionRing() {
+    const arc = document.getElementById("focus-session-ring-arc");
+    if (!arc || focusSessionInitialSeconds <= 0) return;
+    const L = FOCUS_SESSION_RING_LEN;
+    const elapsed = 1 - Math.max(0, focusMenuRunSeconds) / focusSessionInitialSeconds;
+    arc.style.strokeDasharray = String(L);
+    arc.style.strokeDashoffset = String(L * (1 - Math.min(1, Math.max(0, elapsed))));
+  }
+
+  function updateFocusSessionDisplay() {
+    const timeEl = document.getElementById("focus-session-time");
+    if (timeEl) timeEl.textContent = formatFocusSessionClock(focusMenuRunSeconds);
+    updateFocusSessionRing();
+  }
+
+  function setFocusSessionPaused(on) {
+    focusSessionPaused = on;
+    const sep = document.getElementById("panel-focus-session");
+    const pauseBtn = document.getElementById("focus-session-pause");
+    sep?.classList.toggle("tasks-focus-session--paused", on);
+    if (pauseBtn) {
+      pauseBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      pauseBtn.setAttribute("aria-label", on ? "Resume timer" : "Pause timer");
+    }
+    const bars = pauseBtn?.querySelector(".tasks-focus-session__pause-icon--bars");
+    const play = pauseBtn?.querySelector(".tasks-focus-session__pause-icon--play");
+    if (on) {
+      bars?.classList.add("tasks-focus-session__pause-icon--hidden");
+      play?.classList.remove("tasks-focus-session__pause-icon--hidden");
+    } else {
+      bars?.classList.remove("tasks-focus-session__pause-icon--hidden");
+      play?.classList.add("tasks-focus-session__pause-icon--hidden");
+    }
+  }
+
+  function startFocusSession() {
+    closeFocusEditTimer();
+    stopFocusTimer();
+    const menu = document.getElementById("panel-focus-menu");
+    menu?.classList.remove("tasks-focus-menu--open");
+    menu?.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-focus-menu-active");
+    phone?.classList.remove("tasks-phone--focus-menu");
+
+    focusSessionInitialSeconds = Math.max(1, focusMenuTotalSeconds);
+    focusMenuRunSeconds = focusSessionInitialSeconds;
+    focusSessionPaused = false;
+
+    const sep = document.getElementById("panel-focus-session");
+    if (!sep) return;
+    setFocusSessionPaused(false);
+    updateFocusSessionDisplay();
+    sep.classList.add("tasks-focus-session--open");
+    sep.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-focus-session-active");
+    phone?.classList.add("tasks-phone--focus-session");
+
+    focusMenuRunInterval = window.setInterval(() => {
+      if (focusSessionPaused) return;
+      focusMenuRunSeconds -= 1;
+      updateFocusSessionDisplay();
+      if (focusMenuRunSeconds <= 0) {
+        stopFocusTimer();
+        closeFocusSession();
+        openFocusCelebrate();
+      }
+    }, 1000);
+    requestAnimationFrame(() => {
+      document.getElementById("focus-session-pause")?.focus({ preventScroll: true });
+    });
+  }
+
+  function openFocusMenu(taskTitle, minutes, opts) {
+    document.dispatchEvent(new CustomEvent("fullsweep:closeTaskActions"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeAddRoom"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeSelectTime"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeReschedule"));
+    document.dispatchEvent(new CustomEvent("fullsweep:openAutoSanitize"));
+    const panel = document.getElementById("panel-focus-menu");
+    if (!panel) return;
+    resetFocusMenuViews();
+    const preserveDuration = opts && opts.preserveDuration === true;
+    if (!preserveDuration) {
+      const mins = typeof minutes === "number" && minutes > 0 ? Math.min(180, Math.floor(minutes)) : 30;
+      focusMenuTotalSeconds = Math.min(FOCUS_MAX_SECONDS, Math.max(FOCUS_MIN_SECONDS, mins * 60));
+    }
+    const t = document.getElementById("focus-menu-task-title");
+    if (t && typeof taskTitle === "string" && taskTitle.length > 0) t.textContent = taskTitle;
+    updateFocusMenuDurationDisplay();
+    panel.classList.add("tasks-focus-menu--open");
+    panel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-focus-menu-active");
+    phone?.classList.add("tasks-phone--focus-menu");
+    requestAnimationFrame(() => {
+      document.getElementById("focus-menu-close")?.focus({ preventScroll: true });
+    });
+  }
+
+  document.addEventListener("fullsweep:closeFocusMenu", closeFocusMenu);
+  document.addEventListener("fullsweep:closeFocusSession", closeFocusSession);
+  document.addEventListener("fullsweep:closeFocusBreak", closeFocusBreak);
+  document.addEventListener("fullsweep:closeFocusCelebrate", closeFocusCelebrate);
+  populateFocusEditWheels();
+
+  document.addEventListener("fullsweep:closeAutoSanitize", closeAutoSanitize);
+
+  document.getElementById("auto-sanitize-close")?.addEventListener("click", closeAutoSanitize);
+  document.getElementById("auto-sanitize-dismiss")?.addEventListener("click", () => {
+    closeAutoSanitize();
+    openRescheduleScreen();
+  });
+  document.getElementById("auto-sanitize-begin")?.addEventListener("click", () => {
+    const title = document.getElementById("auto-sanitize-task-title")?.textContent?.trim() || "";
+    closeAutoSanitize();
+    openFocusMenu(title, 30);
+  });
+
+  const RESCHEDULE_ITEMS = [
+    { id: "rs1", title: "Change Bedsheets", room: "Bedroom", kind: "overdue", label: "2 days overdue" },
+    { id: "rs2", title: "Wipe countertops", room: "Kitchen", kind: "upcoming", label: "Due in 3 days" },
+    { id: "rs3", title: "Vacuum rug", room: "Living Room", kind: "upcoming", label: "Due in 5 days" },
+    { id: "rs4", title: "Clean toilet", room: "Bathroom", kind: "overdue", label: "1 day overdue" },
+    { id: "rs5", title: "Wash table linens", room: "Dining Room", kind: "upcoming", label: "Due in 1 day" },
+    { id: "rs6", title: "Dust blinds", room: "Bedroom", kind: "upcoming", label: "Due in 4 days" },
+  ];
+
+  const RESCHEDULE_MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const RESCHEDULE_MONTH_OPTIONS = RESCHEDULE_MONTHS.map(
+    (m, i) => `<option value="${i + 1}">${m}</option>`
+  ).join("");
+
+  const RESCHEDULE_DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => {
+    const d = i + 1;
+    return `<option value="${d}">${String(d).padStart(2, "0")}</option>`;
+  }).join("");
+
+  const RESCHEDULE_YEAR_OPTIONS = [2025, 2026, 2027, 2028]
+    .map((y) => `<option value="${y}">${y}</option>`)
+    .join("");
+
+  const RESCHEDULE_TIME_CHEVRON = `<svg class="tasks-reschedule-time-row__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>`;
+
+  const rescheduleChosen = new Set();
+
+  function escapeHtmlReschedule(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function closeSelectTimePanel() {
+    const panel = document.getElementById("panel-select-time");
+    if (!panel || !panel.classList.contains("tasks-select-time--open")) return;
+    panel.classList.remove("tasks-select-time--open");
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-select-time-active");
+    phone?.classList.remove("tasks-phone--select-time");
+    document.getElementById("select-time-free-wrap")?.classList.remove("tasks-select-time__free-wrap--open");
+    document.getElementById("select-time-free-toggle")?.setAttribute("aria-expanded", "false");
+  }
+
+  function syncSelectTimeFreeDateFromCard(li) {
+    const el = document.getElementById("select-time-free-date");
+    if (!el) return;
+    if (!li) {
+      el.textContent = "January 20, 2025";
+      return;
+    }
+    const selects = li.querySelectorAll(".tasks-reschedule-date-row .tasks-reschedule-select");
+    const mo = selects[0]?.selectedOptions[0]?.textContent?.trim();
+    const dayNum = selects[1]?.value;
+    const yr = selects[2]?.value;
+    if (mo && dayNum && yr) {
+      const d = parseInt(dayNum, 10);
+      el.textContent = `${mo} ${d}, ${yr}`;
+    } else {
+      el.textContent = "January 20, 2025";
+    }
+  }
+
+  function resetSelectTimePanelState() {
+    document.querySelectorAll(".tasks-select-time__chip").forEach((c, i) => {
+      c.classList.toggle("tasks-select-time__chip--selected", i === 0);
+    });
+    const sv = document.getElementById("select-time-start-val");
+    const ev = document.getElementById("select-time-end-val");
+    if (sv) sv.textContent = "10AM";
+    if (ev) ev.textContent = "1PM";
+    const ad = document.getElementById("select-time-all-day");
+    if (ad) {
+      ad.checked = false;
+    }
+    document.getElementById("panel-select-time")?.classList.remove("tasks-select-time--all-day");
+    document.getElementById("select-time-free-wrap")?.classList.remove("tasks-select-time__free-wrap--open");
+    document.getElementById("select-time-free-toggle")?.setAttribute("aria-expanded", "false");
+  }
+
+  function openSelectTimePanel(sourceLi) {
+    document.dispatchEvent(new CustomEvent("fullsweep:openAutoSanitize"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeTaskActions"));
+    const panel = document.getElementById("panel-select-time");
+    if (!panel) return;
+    resetSelectTimePanelState();
+    syncSelectTimeFreeDateFromCard(sourceLi);
+    panel.classList.add("tasks-select-time--open");
+    panel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-select-time-active");
+    phone?.classList.add("tasks-phone--select-time");
+    requestAnimationFrame(() => {
+      document.getElementById("select-time-back")?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeRescheduleScreen() {
+    closeFocusMenu();
+    closeSelectTimePanel();
+    const panel = document.getElementById("panel-reschedule");
+    if (!panel || panel.hidden) return;
+    panel.hidden = true;
+    panel.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tasks-reschedule-active");
+    phone?.classList.remove("tasks-phone--reschedule");
+    rescheduleChosen.clear();
+  }
+
+  function renderRescheduleList() {
+    const ul = document.getElementById("reschedule-list");
+    if (!ul) return;
+    ul.innerHTML = "";
+    RESCHEDULE_ITEMS.forEach((item) => {
+      const li = document.createElement("li");
+      li.className = "tasks-reschedule-card";
+      li.dataset.id = item.id;
+      const badgeMod =
+        item.kind === "overdue" ? "tasks-reschedule-card__badge--overdue" : "tasks-reschedule-card__badge--soon";
+      const t = escapeHtmlReschedule(item.title);
+      const r = escapeHtmlReschedule(item.room);
+      const lab = escapeHtmlReschedule(item.label);
+      const mid = `rs-${item.id}`;
+      li.innerHTML = `
+        <div class="tasks-reschedule-card__head">
+          <button type="button" class="tasks-reschedule-card__text" aria-expanded="false" aria-controls="${mid}-panel" id="${mid}-label">
+            <div class="tasks-reschedule-card__topline">
+              <span class="tasks-reschedule-card__title">${t}</span>
+              <span class="tasks-reschedule-card__badge ${badgeMod}">${lab}</span>
+            </div>
+            <span class="tasks-reschedule-card__room">${r}</span>
+          </button>
+          <button type="button" class="tasks-reschedule-card__pick" aria-pressed="false">
+            <span class="tasks-reschedule-card__ring" aria-hidden="true"></span>
+          </button>
+        </div>
+        <div class="tasks-reschedule-card__expand" id="${mid}-panel" role="region" aria-labelledby="${mid}-label">
+          <div class="tasks-reschedule-card__expand-inner">
+            <h3 class="tasks-reschedule-card__do-label">Do Date:</h3>
+            <div class="tasks-reschedule-date-row">
+              <select class="tasks-reschedule-select" id="${mid}-m" aria-label="Month">${RESCHEDULE_MONTH_OPTIONS}</select>
+              <select class="tasks-reschedule-select" id="${mid}-d" aria-label="Day">${RESCHEDULE_DAY_OPTIONS}</select>
+              <select class="tasks-reschedule-select" id="${mid}-y" aria-label="Year">${RESCHEDULE_YEAR_OPTIONS}</select>
+            </div>
+            <button type="button" class="tasks-reschedule-time-row">
+              <span>Select Time</span>
+              ${RESCHEDULE_TIME_CHEVRON}
+            </button>
+            <button type="button" class="tasks-reschedule-expand-save">Save</button>
+          </div>
+        </div>`;
+      ul.appendChild(li);
+      const pick = li.querySelector(".tasks-reschedule-card__pick");
+      if (pick) pick.setAttribute("aria-label", `Select ${item.title}`);
+      const monthSel = li.querySelector(`#${mid}-m`);
+      const daySel = li.querySelector(`#${mid}-d`);
+      const yearSel = li.querySelector(`#${mid}-y`);
+      if (monthSel) monthSel.value = "1";
+      if (daySel) daySel.value = "1";
+      if (yearSel) yearSel.value = "2025";
+    });
+  }
+
+  function openRescheduleScreen() {
+    closeFocusMenu();
+    document.dispatchEvent(new CustomEvent("fullsweep:openAutoSanitize"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeAddRoom"));
+    document.dispatchEvent(new CustomEvent("fullsweep:closeTaskActions"));
+    const panel = document.getElementById("panel-reschedule");
+    if (!panel) return;
+    rescheduleChosen.clear();
+    renderRescheduleList();
+    panel.hidden = false;
+    panel.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tasks-reschedule-active");
+    phone?.classList.add("tasks-phone--reschedule");
+    document.getElementById("reschedule-close")?.focus({ preventScroll: true });
+  }
+
+  document.addEventListener("fullsweep:closeReschedule", closeRescheduleScreen);
+  document.addEventListener("fullsweep:closeSelectTime", closeSelectTimePanel);
+
+  document.getElementById("reschedule-close")?.addEventListener("click", closeRescheduleScreen);
+
+  document.getElementById("select-time-all-day")?.addEventListener("change", (e) => {
+    const t = e.target;
+    const panel = document.getElementById("panel-select-time");
+    if (t && t.id === "select-time-all-day" && panel) {
+      panel.classList.toggle("tasks-select-time--all-day", t.checked);
+    }
+  });
+
+  document.getElementById("panel-select-time")?.addEventListener("click", (e) => {
+    if (e.target.closest("#select-time-back")) {
+      closeSelectTimePanel();
+      return;
+    }
+    const freeTog = e.target.closest("#select-time-free-toggle");
+    if (freeTog) {
+      const wrap = document.getElementById("select-time-free-wrap");
+      const expanded = freeTog.getAttribute("aria-expanded") === "true";
+      const next = !expanded;
+      freeTog.setAttribute("aria-expanded", next ? "true" : "false");
+      wrap?.classList.toggle("tasks-select-time__free-wrap--open", next);
+      return;
+    }
+    const chip = e.target.closest(".tasks-select-time__chip");
+    if (chip) {
+      document.querySelectorAll(".tasks-select-time__chip").forEach((c) => c.classList.remove("tasks-select-time__chip--selected"));
+      chip.classList.add("tasks-select-time__chip--selected");
+      const s = chip.getAttribute("data-start");
+      const en = chip.getAttribute("data-end");
+      const sv = document.getElementById("select-time-start-val");
+      const ev = document.getElementById("select-time-end-val");
+      if (s && sv) sv.textContent = s;
+      if (en && ev) ev.textContent = en;
+      return;
+    }
+    if (e.target.closest("#select-time-start-row") || e.target.closest("#select-time-end-row")) {
+      toast("Custom time (demo).");
+    }
+  });
+
+  document.getElementById("reschedule-list")?.addEventListener("click", (e) => {
+    const ul = document.getElementById("reschedule-list");
+    const pick = e.target.closest(".tasks-reschedule-card__pick");
+    if (pick) {
+      const li = pick.closest(".tasks-reschedule-card");
+      const id = li?.dataset.id;
+      if (!id) return;
+      const wasSelected = pick.getAttribute("aria-pressed") === "true";
+      pick.setAttribute("aria-pressed", wasSelected ? "false" : "true");
+      if (wasSelected) rescheduleChosen.delete(id);
+      else rescheduleChosen.add(id);
+      return;
+    }
+
+    const saveBtn = e.target.closest(".tasks-reschedule-expand-save");
+    if (saveBtn) {
+      const li = saveBtn.closest(".tasks-reschedule-card");
+      const title = li?.querySelector(".tasks-reschedule-card__title")?.textContent?.trim() || "task";
+      const selects = li?.querySelectorAll(".tasks-reschedule-date-row .tasks-reschedule-select");
+      const monthName = selects?.[0]?.selectedOptions[0]?.textContent?.trim();
+      const dayNum = selects?.[1]?.value;
+      const yearNum = selects?.[2]?.value;
+      const dayPadded = dayNum ? String(dayNum).padStart(2, "0") : "";
+      const dateBits = [monthName, dayPadded, yearNum].filter(Boolean).join(" ");
+      toast(dateBits ? `Saved — ${title} · ${dateBits}` : `Saved — ${title}`);
+      li?.classList.remove("tasks-reschedule-card--expand");
+      li?.querySelector(".tasks-reschedule-card__text")?.setAttribute("aria-expanded", "false");
+      return;
+    }
+
+    const timeBtn = e.target.closest(".tasks-reschedule-time-row");
+    if (timeBtn) {
+      const li = timeBtn.closest(".tasks-reschedule-card");
+      openSelectTimePanel(li || null);
+      return;
+    }
+
+    const textBtn = e.target.closest(".tasks-reschedule-card__text");
+    if (!textBtn || !ul) return;
+    const li = textBtn.closest(".tasks-reschedule-card");
+    if (!li) return;
+    ul.querySelectorAll(".tasks-reschedule-card").forEach((card) => {
+      if (card !== li) {
+        card.classList.remove("tasks-reschedule-card--expand");
+        card.querySelector(".tasks-reschedule-card__text")?.setAttribute("aria-expanded", "false");
+      }
+    });
+    li.classList.toggle("tasks-reschedule-card--expand");
+    const open = li.classList.contains("tasks-reschedule-card--expand");
+    textBtn.setAttribute("aria-expanded", open ? "true" : "false");
+
+    const ringBtn = li.querySelector(".tasks-reschedule-card__pick");
+    const cid = li.dataset.id;
+    if (ringBtn && cid) {
+      ringBtn.setAttribute("aria-pressed", "true");
+      rescheduleChosen.add(cid);
+    }
+  });
+
+  document.getElementById("reschedule-done")?.addEventListener("click", () => {
+    const n = rescheduleChosen.size;
+    if (n === 0) {
+      toast("Select at least one task to reschedule.");
+      return;
+    }
+    toast(`Got it — we’ll help reschedule ${n} task${n === 1 ? "" : "s"}.`);
+    closeRescheduleScreen();
+  });
+
   document.querySelectorAll(".tasks-shuffle:not(.tasks-shuffle--rooms)").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const pick = dayTasks[Math.floor(Math.random() * dayTasks.length)];
-      toast(`Try starting with: ${pick}`);
+      openAutoSanitize();
     });
   });
 
@@ -451,14 +1247,90 @@
     }
   }
 
+  document.addEventListener("fullsweep:openAutoSanitize", () => {
+    if (calendarExpandedOpen) setCalendarExpanded(false);
+  });
+
   expandCalBtn?.addEventListener("click", (e) => {
     e.stopPropagation();
     setCalendarExpanded(!calendarExpandedOpen);
   });
 
+  document.getElementById("focus-menu-close")?.addEventListener("click", closeFocusMenu);
+  document.getElementById("focus-menu-begin-circle")?.addEventListener("click", startFocusSession);
+  document.getElementById("focus-session-back")?.addEventListener("click", () => {
+    closeFocusSession();
+    openFocusMenu(null, null, { preserveDuration: true });
+  });
+  document.getElementById("focus-session-pause")?.addEventListener("click", () => {
+    setFocusSessionPaused(!focusSessionPaused);
+  });
+  document.getElementById("focus-session-break")?.addEventListener("click", openFocusBreak);
+  document.getElementById("focus-break-back")?.addEventListener("click", closeFocusBreak);
+  document.getElementById("focus-break-ready")?.addEventListener("click", closeFocusBreak);
+  document.getElementById("focus-break-pause")?.addEventListener("click", () => {
+    setFocusBreakPaused(!focusBreakPaused);
+  });
+  document.getElementById("focus-session-finish")?.addEventListener("click", () => {
+    closeFocusSession();
+    openFocusCelebrate();
+  });
+  document.getElementById("focus-celebrate-btn")?.addEventListener("click", () => {
+    closeFocusCelebrate();
+    closeFocusMenu();
+  });
+  document.getElementById("focus-menu-edit-timer")?.addEventListener("click", openFocusEditTimer);
+  document.getElementById("focus-edit-timer-save")?.addEventListener("click", applyFocusEditTimerSave);
+  document.getElementById("focus-edit-timer-close")?.addEventListener("click", closeFocusEditTimer);
+  document.getElementById("focus-edit-timer-shade")?.addEventListener("click", closeFocusEditTimer);
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && calendarExpandedOpen) {
-      setCalendarExpanded(false);
+    if (e.key === "Escape") {
+      const celPanel = document.getElementById("panel-focus-celebrate");
+      if (celPanel?.classList.contains("tasks-focus-celebrate--open")) {
+        closeFocusCelebrate();
+        closeFocusMenu();
+        return;
+      }
+      const fbPanel = document.getElementById("panel-focus-break");
+      if (fbPanel?.classList.contains("tasks-focus-break--open")) {
+        closeFocusBreak();
+        return;
+      }
+      const fsPanel = document.getElementById("panel-focus-session");
+      if (fsPanel?.classList.contains("tasks-focus-session--open")) {
+        closeFocusSession();
+        openFocusMenu(null, null, { preserveDuration: true });
+        return;
+      }
+      const fmPanel = document.getElementById("panel-focus-menu");
+      const editOv = document.getElementById("focus-edit-timer-overlay");
+      if (fmPanel?.classList.contains("tasks-focus-menu--open") && editOv && !editOv.hidden) {
+        closeFocusEditTimer();
+        return;
+      }
+      if (fmPanel?.classList.contains("tasks-focus-menu--open")) {
+        closeFocusMenu();
+        return;
+      }
+      const stPanel = document.getElementById("panel-select-time");
+      if (stPanel?.classList.contains("tasks-select-time--open")) {
+        closeSelectTimePanel();
+        return;
+      }
+      const rsPanel = document.getElementById("panel-reschedule");
+      if (rsPanel && !rsPanel.hidden) {
+        closeRescheduleScreen();
+        return;
+      }
+      const asPanel = document.getElementById("panel-auto-sanitize");
+      if (asPanel && !asPanel.hidden) {
+        closeAutoSanitize();
+        return;
+      }
+      if (calendarExpandedOpen) {
+        setCalendarExpanded(false);
+      }
     }
   });
 

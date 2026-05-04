@@ -145,7 +145,7 @@
     focusDone: () => document.getElementById("focus-done"),
     focusClose: () => document.getElementById("focus-close"),
     taskList: () => document.getElementById("task-list"),
-    scheduleList: () => document.getElementById("schedule-list"),
+    scheduleHeaderDate: () => document.getElementById("schedule-header-date"),
     activityInbox: () => document.getElementById("activity-inbox"),
     panels: () => document.querySelectorAll("[data-panel]"),
     tabs: () => document.querySelectorAll("[data-tab]"),
@@ -156,6 +156,60 @@
   let focusInterval = null;
   let focusRemaining = 0;
   let focusRunning = false;
+  let scheduleView = "day";
+
+  function scheduleDateOnly(d) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  let scheduleSelectedDate = scheduleDateOnly(new Date());
+
+  function sameScheduleDay(a, b) {
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
+
+  function renderScheduleMonthGrid() {
+    const grid = document.getElementById("schedule-month-grid");
+    if (!grid) return;
+    const y = scheduleSelectedDate.getFullYear();
+    const m = scheduleSelectedDate.getMonth();
+    const first = new Date(y, m, 1);
+    const startPad = first.getDay();
+    const dim = new Date(y, m + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < startPad; i += 1) cells.push({ type: "pad" });
+    for (let d = 1; d <= dim; d += 1) cells.push({ type: "day", d });
+    while (cells.length < 42) cells.push({ type: "pad" });
+    grid.setAttribute(
+      "aria-label",
+      first.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    );
+    grid.innerHTML = "";
+    cells.forEach((c) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "schedule-month__cell";
+      if (c.type === "pad") {
+        btn.classList.add("schedule-month__cell--empty");
+        btn.disabled = true;
+        btn.setAttribute("aria-hidden", "true");
+      } else {
+        btn.textContent = String(c.d);
+        btn.setAttribute("data-day", String(c.d));
+        btn.setAttribute("data-year", String(y));
+        btn.setAttribute("data-month", String(m));
+        const cellDate = new Date(y, m, c.d);
+        if (sameScheduleDay(cellDate, scheduleSelectedDate)) {
+          btn.classList.add("schedule-month__cell--selected");
+        }
+      }
+      grid.appendChild(btn);
+    });
+  }
 
   function pendingTasks() {
     return state.tasks.filter((t) => !t.completedAt);
@@ -448,36 +502,151 @@
     return d.innerHTML;
   }
 
+  function formatScheduleHeaderDate(d) {
+    return d.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  }
+
+  function mondayOfWeekContaining(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dow = x.getDay();
+    const offset = dow === 0 ? -6 : 1 - dow;
+    x.setDate(x.getDate() + offset);
+    return x;
+  }
+
+  function formatWeekRangeLine(mon, fri) {
+    const y = fri.getFullYear();
+    const a = mon.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const b = fri.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `${a} – ${b}, ${y}`;
+  }
+
+  function updateScheduleHeader() {
+    const el = els.scheduleHeaderDate();
+    const link = document.getElementById("schedule-header-link");
+    const strip = document.getElementById("schedule-week-strip");
+    const stripInner = document.getElementById("schedule-week-strip-inner");
+    const hdr = document.getElementById("schedule-header");
+    if (!el) return;
+    hdr?.classList.toggle("schedule-header--week", scheduleView === "week");
+    if (scheduleView === "week") {
+      const mon = mondayOfWeekContaining(new Date());
+      const fri = new Date(mon);
+      fri.setDate(mon.getDate() + 4);
+      el.textContent = formatWeekRangeLine(mon, fri);
+      if (link) link.textContent = "View All Weeks";
+      if (strip) strip.hidden = false;
+      if (stripInner) {
+        stripInner.innerHTML = "";
+        for (let i = 0; i < 5; i += 1) {
+          const day = new Date(mon);
+          day.setDate(mon.getDate() + i);
+          const span = document.createElement("span");
+          span.className = "schedule-week-strip__day";
+          span.textContent = `${day.getMonth() + 1}/${day.getDate()}`;
+          stripInner.appendChild(span);
+        }
+      }
+    } else if (scheduleView === "month") {
+      if (strip) strip.hidden = true;
+      el.textContent = formatScheduleHeaderDate(scheduleSelectedDate);
+      if (link) link.textContent = "View All Months";
+    } else {
+      if (strip) strip.hidden = true;
+      el.textContent = formatScheduleHeaderDate(new Date());
+      if (link) link.textContent = "View All Dates";
+    }
+  }
+
   function renderSchedule() {
-    const box = els.scheduleList();
-    if (!box) return;
-    const groups = {};
-    state.tasks.forEach((t) => {
-      const key = t.when.includes("Tomorrow") ? "Tomorrow" : "Today";
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(t);
+    updateScheduleHeader();
+  }
+
+  function closeSchedulePicker() {
+    const hdr = document.getElementById("schedule-header");
+    const picker = document.getElementById("schedule-view-picker");
+    const toggle = document.getElementById("schedule-view-toggle");
+    hdr?.classList.remove("schedule-header--open");
+    if (picker) picker.hidden = true;
+    if (toggle) toggle.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleSchedulePicker() {
+    const picker = document.getElementById("schedule-view-picker");
+    const toggle = document.getElementById("schedule-view-toggle");
+    const hdr = document.getElementById("schedule-header");
+    if (!picker || !toggle || !hdr) return;
+    const open = picker.hidden;
+    picker.hidden = !open;
+    hdr.classList.toggle("schedule-header--open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function setScheduleView(view) {
+    scheduleView = view === "week" || view === "month" ? view : "day";
+    const titleEl = document.getElementById("schedule-view-title");
+    if (titleEl) {
+      titleEl.textContent =
+        scheduleView === "week" ? "Week's Schedule" : scheduleView === "month" ? "Month's Schedule" : "Day's Schedule";
+    }
+    const dayEl = document.getElementById("schedule-view-day");
+    const weekEl = document.getElementById("schedule-view-week");
+    const monthEl = document.getElementById("schedule-view-month");
+    if (dayEl) dayEl.hidden = scheduleView !== "day";
+    if (weekEl) weekEl.hidden = scheduleView !== "week";
+    if (monthEl) monthEl.hidden = scheduleView !== "month";
+    document.querySelectorAll("#schedule-view-picker [data-schedule-view]").forEach((btn) => {
+      const on = btn.getAttribute("data-schedule-view") === scheduleView;
+      btn.setAttribute("aria-selected", on ? "true" : "false");
     });
-    box.innerHTML = "";
-    let any = false;
-    ["Today", "Tomorrow"].forEach((day) => {
-      const items = groups[day];
-      if (!items || !items.length) return;
-      any = true;
-      const sec = document.createElement("section");
-      sec.className = "schedule-day";
-      sec.innerHTML = `<h3 class="schedule-day__title">${day}</h3>`;
-      const ul = document.createElement("ul");
-      ul.className = "schedule-day__list";
-      items.forEach((t) => {
-        const li = document.createElement("li");
-        li.className = "schedule-item" + (t.completedAt ? " schedule-item--done" : "");
-        li.innerHTML = `<span>${escapeHtml(t.title)}</span><span>${t.completedAt ? "Done" : escapeHtml(t.when.replace(/^[^,]+,?\s*/, ""))}</span>`;
-        ul.appendChild(li);
+    closeSchedulePicker();
+    if (scheduleView === "month") {
+      renderScheduleMonthGrid();
+    }
+    updateScheduleHeader();
+  }
+
+  function bindSchedule() {
+    const toggle = document.getElementById("schedule-view-toggle");
+    const picker = document.getElementById("schedule-view-picker");
+    const header = document.getElementById("schedule-header");
+    if (!toggle || !picker || toggle.dataset.bound) return;
+    toggle.dataset.bound = "1";
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSchedulePicker();
+    });
+    picker.querySelectorAll("[data-schedule-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setScheduleView(btn.getAttribute("data-schedule-view") || "day");
       });
-      sec.appendChild(ul);
-      box.appendChild(sec);
     });
-    if (!any) box.innerHTML = '<p class="schedule-empty">Nothing on the calendar.</p>';
+    document.getElementById("schedule-edit-btn")?.addEventListener("click", () => {
+      showToast("Edit schedule — coming soon.");
+    });
+    document.querySelector(".schedule-body")?.addEventListener("click", (e) => {
+      const add = e.target.closest(".schedule-block__add");
+      if (add) showToast("Pick a time — task picker coming soon.");
+    });
+    const monthPanel = document.getElementById("schedule-view-month");
+    if (monthPanel && !monthPanel.dataset.monthNavBound) {
+      monthPanel.dataset.monthNavBound = "1";
+      monthPanel.addEventListener("click", (e) => {
+        const cell = e.target.closest("button.schedule-month__cell[data-day]");
+        if (!cell || cell.disabled) return;
+        const y = parseInt(cell.getAttribute("data-year"), 10);
+        const mo = parseInt(cell.getAttribute("data-month"), 10);
+        const day = parseInt(cell.getAttribute("data-day"), 10);
+        scheduleSelectedDate = scheduleDateOnly(new Date(y, mo, day));
+        renderScheduleMonthGrid();
+        updateScheduleHeader();
+      });
+    }
+    document.addEventListener("click", (e) => {
+      if (!header?.classList.contains("schedule-header--open")) return;
+      if (header.contains(e.target)) return;
+      closeSchedulePicker();
+    });
   }
 
   function formatNotifRelative(ts) {
@@ -575,6 +744,12 @@
       panel.classList.toggle("panel--active", on);
       panel.hidden = !on;
     });
+    const phone = document.getElementById("app-phone");
+    phone?.classList.toggle("phone--schedule", tab === "schedule");
+    if (tab === "schedule") {
+      updateScheduleHeader();
+      closeSchedulePicker();
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
     try {
       if (history.replaceState) {
@@ -633,6 +808,7 @@
     });
 
     bindActivityInbox();
+    bindSchedule();
 
     els.tabs().forEach((btn) => {
       btn.addEventListener("click", () => setTab(btn.getAttribute("data-tab") || "home"));
@@ -650,6 +826,9 @@
 
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape" && els.focusOverlay()?.classList.contains("is-open")) closeFocus();
+      if (ev.key === "Escape" && document.getElementById("schedule-header")?.classList.contains("schedule-header--open")) {
+        closeSchedulePicker();
+      }
     });
   }
 
