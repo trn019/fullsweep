@@ -150,9 +150,15 @@
     return ka.tie - kb.tie;
   }
 
+  function unwrapCardFromActionHolder(card, container) {
+    const holder = card.closest(".tasks-card-with-actions");
+    if (holder && container.contains(holder)) holder.replaceWith(card);
+  }
+
   function sortTaskCardsInContainer(container, mode) {
     if (!container) return;
     const cards = Array.from(container.querySelectorAll(".tasks-card"));
+    cards.forEach((c) => unwrapCardFromActionHolder(c, container));
     if (mode === "cleanliness") {
       cards.sort((a, b) => cleanlinessFromCard(b) - cleanlinessFromCard(a));
     } else {

@@ -13,7 +13,7 @@
   --tasks-warn-fill: #fcd34d;
   --tasks-dot-off: #d1d5db;
   --tasks-dot-on: #0056a4;
-  --radius-card: 14px;
+  --radius-card: 12px;
   --radius-date-pill: 999px;
   --font: "Inter", system-ui, -apple-system, sans-serif;
   --tab-h: 72px;
@@ -121,18 +121,17 @@
 
 .tasks-calendar-card {
   background: var(--tasks-card);
-  border-radius: 16px 16px 0 0;
+  /* Straight top (flush under header), rounded bottom — matches By Day reference */
+  border-radius: 0 0 26px 26px;
+  border: 1px solid rgba(0, 86, 164, 0.28);
+  border-top: none;
   padding: 10px 8px 10px 10px;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 0;
-}
-
-/* Unexpanded strip: light blue outline like By Day reference */
-.tasks-calendar-card:not(.tasks-calendar-card--expanded) {
-  border: 1px solid rgba(0, 86, 164, 0.22);
+  overflow: hidden;
 }
 
 .tasks-calendar-card__strip {
@@ -145,8 +144,8 @@
 }
 
 .tasks-calendar-card--expanded {
-  border: 1px solid rgba(0, 86, 164, 0.22);
-  border-bottom: none;
+  border: 1px solid rgba(0, 86, 164, 0.28);
+  border-top: none;
   padding: 0 0 6px;
 }
 
@@ -589,39 +588,45 @@
 .tasks-card {
   background: var(--tasks-card);
   border-radius: var(--radius-card);
-  padding: 16px 16px 14px;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 20px rgba(17, 24, 39, 0.07);
+  padding: 11px 12px 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 3px 14px rgba(17, 24, 39, 0.07);
   position: relative;
 }
 
 .tasks-card__title {
-  margin: 0 0 6px;
-  font-size: 1rem;
+  margin: 0 0 4px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
 .tasks-card__meta {
-  margin: 0 0 10px;
-  font-size: 0.8125rem;
+  margin: 0 0 6px;
+  font-size: 0.75rem;
   color: var(--tasks-muted);
 }
 
 .tasks-card__repeat {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 0.8125rem;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 0.75rem;
   color: var(--tasks-muted);
 }
 
+.tasks-card__repeat svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 .tasks-meter {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .tasks-meter__track {
-  height: 8px;
+  height: 6px;
   border-radius: 999px;
   background: var(--tasks-bar-track);
   overflow: hidden;
@@ -646,8 +651,8 @@
 }
 
 .tasks-meter__label {
-  margin: 6px 0 0;
-  font-size: 0.75rem;
+  margin: 4px 0 0;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: var(--tasks-muted);
 }
@@ -667,13 +672,13 @@
 .tasks-card__dots {
   display: flex;
   justify-content: flex-end;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .tasks-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   border: 2px solid var(--tasks-dot-off);
   background: transparent;

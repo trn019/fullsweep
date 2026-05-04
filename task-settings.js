@@ -37,11 +37,19 @@
   }
 
   function removeActionBar() {
-    if (activeBar && activeBar.parentNode) activeBar.remove();
-    if (activeCard) {
-      activeCard = null;
+    const holder = activeCard?.closest(".tasks-card-with-actions");
+    if (holder && activeBar && holder.contains(activeBar)) {
+      const root = holder.parentNode;
+      const card = activeCard;
+      if (root && card) {
+        root.insertBefore(card, holder);
+        holder.remove();
+      }
+    } else if (activeBar?.parentNode) {
+      activeBar.remove();
     }
     activeBar = null;
+    activeCard = null;
   }
 
   function actionBarHtml() {
@@ -76,10 +84,14 @@
   function showActionBarBeforeCard(card, root) {
     removeActionBar();
     activeCard = card;
-    const wrap = document.createElement("div");
-    wrap.innerHTML = actionBarHtml().trim();
-    const bar = wrap.firstElementChild;
-    root.insertBefore(bar, card);
+    const holder = document.createElement("div");
+    holder.className = "tasks-card-with-actions";
+    root.insertBefore(holder, card);
+    holder.appendChild(card);
+    const temp = document.createElement("div");
+    temp.innerHTML = actionBarHtml().trim();
+    const bar = temp.firstElementChild;
+    holder.insertBefore(bar, card);
     activeBar = bar;
   }
 

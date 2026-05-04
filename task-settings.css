@@ -341,17 +341,34 @@ body.task-settings-open {
 
 /* ——— Task quick actions (before Edit sheet) ——— */
 
+/* Toolbar + card share one width, radius, and shadow (matches .tasks-card) */
+.tasks-card-with-actions {
+  margin-bottom: 8px;
+  border-radius: var(--radius-card, 12px);
+  overflow: hidden;
+  box-shadow: 0 3px 14px rgba(17, 24, 39, 0.07);
+  background: var(--tasks-card, #fff);
+}
+
+.tasks-card-with-actions .tasks-card {
+  margin-bottom: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .tasks-task-action-bar {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   width: 100%;
-  margin: 0 0 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 86, 164, 0.45);
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(0, 86, 164, 0.32);
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 2px 10px rgba(0, 86, 164, 0.08);
+  box-shadow: none;
+  min-height: 40px;
 }
 
 .tasks-task-action {
@@ -361,11 +378,11 @@ body.task-settings-open {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
-  padding: 10px 6px 12px;
+  padding: 5px 3px 6px;
   border: none;
-  border-left: 1px solid rgba(0, 86, 164, 0.35);
+  border-left: 1px solid rgba(0, 86, 164, 0.32);
   background: transparent;
   cursor: pointer;
   font: inherit;
@@ -379,10 +396,17 @@ body.task-settings-open {
 }
 
 .tasks-task-action--back {
-  flex: 0 0 48px;
+  flex: 0 0 36px;
   background: #fff;
   padding-left: 0;
   padding-right: 0;
+}
+
+.tasks-task-action__icon {
+  display: block;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
 }
 
 .tasks-task-action--done {
@@ -397,15 +421,10 @@ body.task-settings-open {
   background: #bfdbfe;
 }
 
-.tasks-task-action__icon {
-  display: block;
-  flex-shrink: 0;
-}
-
 .tasks-task-action__label {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   text-align: center;
   color: var(--tasks-blue, #0056a4);
 }
