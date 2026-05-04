@@ -225,6 +225,10 @@
       if (toolbarBtn) {
         const card = toolbarBtn.closest(".tasks-card");
         if (!card || !root.contains(card)) return;
+        if (root.id === "panel-day") {
+          const body = card.closest(".tasks-room__body");
+          if (!body || !root.contains(body)) return;
+        }
         e.stopPropagation();
         handleToolbarAction(toolbarBtn.getAttribute("data-action") || "", card);
         return;
@@ -232,6 +236,10 @@
 
       const card = e.target.closest(".tasks-card");
       if (!card || !root.contains(card)) return;
+      if (root.id === "panel-day") {
+        const body = card.closest(".tasks-room__body");
+        if (!body || !root.contains(body)) return;
+      }
 
       if (card.classList.contains("tasks-card--actions")) {
         removeActionBar();
@@ -243,8 +251,7 @@
   }
 
   bindList(document.getElementById("room-task-list"));
-  bindList(document.getElementById("bathroom-body"));
-  bindList(document.getElementById("bedroom-body"));
+  bindList(document.getElementById("panel-day"));
 
   document.addEventListener("fullsweep:closeTaskActions", removeActionBar);
 })();

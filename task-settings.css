@@ -334,8 +334,7 @@ body.task-settings-open {
 
 .tasks-page .tasks-card--clickable,
 .room-detail-scroll .tasks-card,
-#bathroom-body .tasks-card,
-#bedroom-body .tasks-card {
+#panel-day .tasks-room__body .tasks-card {
   cursor: pointer;
 }
 

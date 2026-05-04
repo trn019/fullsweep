@@ -180,9 +180,109 @@
     cards.forEach((c) => container.appendChild(c));
   }
 
-  const bathroomBody = document.getElementById("bathroom-body");
-  const bedroomBody = document.getElementById("bedroom-body");
   const tasksEmptyDay = document.getElementById("tasks-empty-day");
+
+  function getDayRoomBodies() {
+    return Array.from(document.querySelectorAll("#panel-day .tasks-room__body"));
+  }
+
+  const CUSTOM_ROOMS_KEY = "fullsweep_custom_rooms";
+
+  function readCustomRooms() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_ROOMS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /** Remove previously injected custom room UI (By Rooms + By Day) */
+  function removeInjectedCustomRooms() {
+    document.querySelectorAll("[data-custom-room]").forEach((el) => el.remove());
+  }
+
+  function injectCustomRoomsFromStorage() {
+    removeInjectedCustomRooms();
+    const grid = document.querySelector(".rooms-dash__grid");
+    const dayMain = document.querySelector("#panel-day main.tasks-scroll");
+    if (!grid || !dayMain) return;
+
+    readCustomRooms().forEach((entry) => {
+      if (!entry || !entry.name || !entry.slug) return;
+      const slug = String(entry.slug).replace(/[^a-z0-9-]/gi, "");
+      if (!slug) return;
+
+      const tile = document.createElement("a");
+      tile.href = `room.html?room=${encodeURIComponent(slug)}`;
+      tile.className = "room-tile";
+      tile.setAttribute("data-custom-room", slug);
+      tile.innerHTML = `
+        <h3 class="room-tile__name"></h3>
+        <p class="room-tile__meta">New room</p>
+        <div class="room-tile__bottom">
+          <span class="room-tile__tasks">0 tasks</span>
+          <div class="room-ring" role="img" aria-label="0% complete">
+            <svg class="room-ring__svg" viewBox="0 0 52 52" width="52" height="52" aria-hidden="true">
+              <circle class="room-ring__track" cx="26" cy="26" r="20" fill="none" stroke="#e8e8e8" stroke-width="4" />
+              <circle class="room-ring__arc room-ring__arc--yellow" cx="26" cy="26" r="20" fill="none" stroke="#e8c832" stroke-width="4" stroke-linecap="round" transform="rotate(-90 26 26)" data-pct="0" />
+            </svg>
+            <span class="room-ring__label">0%</span>
+          </div>
+        </div>`;
+      tile.querySelector(".room-tile__name").textContent = entry.name;
+      const n = Array.isArray(entry.tasks) ? entry.tasks.length : 0;
+      const taskSpan = tile.querySelector(".room-tile__tasks");
+      if (taskSpan) taskSpan.textContent = `${n} task${n === 1 ? "" : "s"}`;
+      grid.appendChild(tile);
+
+      const titles = Array.isArray(entry.tasks) ? entry.tasks : [];
+      const cardsHtml = titles
+        .map((title, i) => {
+          const d = new Date(2027, 0, 14 + (i % 7));
+          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const pct = 30 + (i * 7) % 50;
+          const fill = pct > 65 ? "tasks-meter__fill--urgent" : pct > 45 ? "tasks-meter__fill--warn" : "tasks-meter__fill--good";
+          const lab = pct > 65 ? "tasks-meter__label--urgent" : pct > 45 ? "tasks-meter__label--warn" : "tasks-meter__label--good";
+          const labText = pct > 65 ? "Uh oh..." : pct > 45 ? "Getting dusty..." : "Looking good";
+          const esc = String(title).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+          return `<article class="tasks-card" data-due-iso="${iso}" data-cleanliness="${pct}" data-effort="2" data-task-category="${esc}" data-task-location="${esc}" data-task-repeat="As needed" data-task-every="as needed" data-task-schedule-repeat="Flexible" data-task-time="Time">
+            <h3 class="tasks-card__title">${esc}</h3>
+            <p class="tasks-card__meta">new task</p>
+            <div class="tasks-card__repeat">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              As needed
+            </div>
+            <div class="tasks-meter">
+              <div class="tasks-meter__track"><div class="tasks-meter__fill ${fill}" style="width:${pct}%"></div></div>
+              <p class="tasks-meter__label ${lab}">${labText}</p>
+            </div>
+            <div class="tasks-card__dots" aria-hidden="true">
+              <span class="tasks-dot tasks-dot--on"></span><span class="tasks-dot"></span><span class="tasks-dot"></span>
+            </div>
+          </article>`;
+        })
+        .join("");
+
+      const sec = document.createElement("section");
+      sec.className = "tasks-room";
+      sec.setAttribute("data-collapsed", "false");
+      sec.setAttribute("data-custom-room", slug);
+      sec.innerHTML = `
+        <button type="button" class="tasks-room__header" aria-expanded="true" id="toggle-custom-${slug}">
+          <span class="tasks-room__title-text"></span>
+          <span class="tasks-room__chev" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15" /></svg>
+          </span>
+        </button>
+        <div class="tasks-room__body" id="room-body-${slug}">${cardsHtml || ""}</div>`;
+      sec.querySelector(".tasks-room__title-text").textContent = entry.name;
+      dayMain.appendChild(sec);
+    });
+
+    initRoomRings();
+  }
 
   const DAY_NAMES = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
@@ -261,8 +361,7 @@
 
   function applyTaskDayFilter() {
     let visible = 0;
-    [bathroomBody, bedroomBody].forEach((container) => {
-      if (!container) return;
+    getDayRoomBodies().forEach((container) => {
       container.querySelectorAll(".tasks-card").forEach((card) => {
         const due = card.getAttribute("data-due-iso");
         const show = due === selectedIso;
@@ -377,8 +476,7 @@
 
   function setTasksSortMode(mode) {
     tasksSortMode = mode === "effort" ? "effort" : "cleanliness";
-    sortTaskCardsInContainer(bathroomBody, tasksSortMode);
-    sortTaskCardsInContainer(bedroomBody, tasksSortMode);
+    getDayRoomBodies().forEach((body) => sortTaskCardsInContainer(body, tasksSortMode));
     if (tasksSortLabel) tasksSortLabel.textContent = SORT_LABELS[tasksSortMode];
     tasksSortMenu?.querySelectorAll("[data-sort]").forEach((el) => {
       const on = el.getAttribute("data-sort") === tasksSortMode;
@@ -413,6 +511,14 @@
   });
 
   document.addEventListener("click", () => closeTasksSortMenu());
+
+  injectCustomRoomsFromStorage();
+
+  document.addEventListener("fullsweep:customRoomsChanged", () => {
+    injectCustomRoomsFromStorage();
+    applyTaskDayFilter();
+    setTasksSortMode(tasksSortMode);
+  });
 
   setTasksSortMode("cleanliness");
 

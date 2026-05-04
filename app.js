@@ -4,6 +4,7 @@
   const STORAGE_KEY = "fullsweep_app_v1";
   const FOCUS_SECONDS_DEFAULT = 15 * 60;
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const DAY_MS = 24 * 60 * 60 * 1000;
 
   const defaultTasks = () => [
     { id: "t1", title: "Wash the dishes", when: "Today, 10:12am", completedAt: null },
@@ -25,10 +26,44 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
+  function defaultInbox() {
+    const t = now();
+    return [
+      {
+        id: "seed-do-kitchen",
+        at: t - 1500,
+        read: false,
+        variant: "do_now",
+        headline: "Vacuum Floor",
+        subtitle: "Kitchen 3:30pm",
+        showSchedule: false,
+      },
+      {
+        id: "seed-bedroom-status",
+        at: t - 2 * DAY_MS,
+        read: false,
+        variant: "status",
+        headline: "Bedroom is only 30% clean...",
+        subtitle: "Is the area messy?",
+        showSchedule: true,
+      },
+      {
+        id: "seed-bed-read",
+        at: t - 7 * DAY_MS,
+        read: true,
+        variant: "do_now",
+        headline: "Replace Bed Sheets",
+        subtitle: "Bedroom 10:12pm",
+        showSchedule: false,
+      },
+    ];
+  }
+
   function freshState() {
     return {
       tasks: defaultTasks(),
       events: [],
+      inbox: defaultInbox(),
       bedroomDust: 72,
       carouselIndex: 0,
     };
@@ -39,6 +74,7 @@
     if (s && Array.isArray(s.tasks)) {
       if (typeof s.bedroomDust !== "number") s.bedroomDust = 72;
       if (!Array.isArray(s.events)) s.events = [];
+      if (!Array.isArray(s.inbox)) s.inbox = defaultInbox();
       if (typeof s.carouselIndex !== "number") s.carouselIndex = 0;
       return s;
     }
@@ -110,7 +146,7 @@
     focusClose: () => document.getElementById("focus-close"),
     taskList: () => document.getElementById("task-list"),
     scheduleList: () => document.getElementById("schedule-list"),
-    activityList: () => document.getElementById("activity-list"),
+    activityInbox: () => document.getElementById("activity-inbox"),
     panels: () => document.querySelectorAll("[data-panel]"),
     tabs: () => document.querySelectorAll("[data-tab]"),
     viewAll: () => document.querySelectorAll('[data-go-tab="tasks"]'),
@@ -125,8 +161,45 @@
     return state.tasks.filter((t) => !t.completedAt);
   }
 
+  function appendInboxForEvent(ev) {
+    if (!Array.isArray(state.inbox)) state.inbox = [];
+    const nid = "n" + now() + Math.random().toString(36).slice(2, 9);
+    if (ev.type === "task_complete") {
+      state.inbox.unshift({
+        id: nid,
+        at: now(),
+        read: false,
+        variant: "do_now",
+        headline: ev.title || "Task",
+        subtitle: "Marked complete from home",
+        showSchedule: false,
+      });
+    } else if (ev.type === "focus_session") {
+      state.inbox.unshift({
+        id: nid,
+        at: now(),
+        read: false,
+        variant: "do_now",
+        headline: "Focus session",
+        subtitle: `${ev.minutes || 0} min logged`,
+        showSchedule: false,
+      });
+    } else if (ev.type === "room_clean") {
+      state.inbox.unshift({
+        id: nid,
+        at: now(),
+        read: false,
+        variant: "status",
+        headline: "Bedroom quick clean",
+        subtitle: "Logged from your home dashboard",
+        showSchedule: true,
+      });
+    }
+  }
+
   function pushEvent(ev) {
     state.events.push({ id: "e" + now() + Math.random().toString(36).slice(2), at: now(), ...ev });
+    appendInboxForEvent(ev);
     saveState(state);
   }
 
@@ -407,53 +480,140 @@
     if (!any) box.innerHTML = '<p class="schedule-empty">Nothing on the calendar.</p>';
   }
 
-  function formatActivityTime(ts) {
-    const d = new Date(ts);
-    const nowD = new Date();
-    const diff = nowD - d;
-    if (diff < 60000) return "Just now";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
-    if (d.toDateString() === nowD.toDateString()) return `Today, ${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
-    return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  function formatNotifRelative(ts) {
+    const diff = Math.max(0, now() - ts);
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return `${Math.max(1, s)}s`;
+    const m = Math.floor(diff / 60000);
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(diff / 3600000);
+    if (h < 24) return `${h}h`;
+    const d = Math.floor(diff / DAY_MS);
+    if (d < 7) return `${d}d`;
+    const w = Math.floor(diff / (7 * DAY_MS));
+    return `${Math.max(1, w)}w`;
   }
 
-  function activityLabel(e) {
-    if (e.type === "task_complete") return `Completed “${e.title || "task"}”`;
-    if (e.type === "focus_session") return `Focus session · ${e.minutes || 0} min`;
-    if (e.type === "room_clean") return "Quick clean · Bedroom";
-    return "Activity";
+  function notificationTitle(n) {
+    if (n.variant === "do_now") return `Do Now: ${n.headline || "Task"}`;
+    return n.headline || "Update";
   }
 
   function renderActivity() {
-    const ul = els.activityList();
-    if (!ul) return;
-    const sorted = [...state.events].sort((a, b) => b.at - a.at).slice(0, 30);
-    ul.innerHTML = "";
+    const root = els.activityInbox();
+    if (!root) return;
+    const inbox = Array.isArray(state.inbox) ? state.inbox : [];
+    const sorted = [...inbox].sort((a, b) => b.at - a.at);
+    const unread = sorted.filter((n) => !n.read);
+    const read = sorted.filter((n) => n.read);
+
+    root.innerHTML = "";
+
     if (sorted.length === 0) {
-      ul.innerHTML = '<li class="activity-empty">No activity yet — complete a task or run focus mode.</li>';
+      const p = document.createElement("p");
+      p.className = "activity-empty";
+      p.textContent = "No notifications yet — complete a task, run focus mode, or log a quick clean.";
+      root.appendChild(p);
       return;
     }
-    sorted.forEach((e) => {
-      const li = document.createElement("li");
-      li.className = "activity-item";
-      li.innerHTML = `<p class="activity-item__text">${escapeHtml(activityLabel(e))}</p><time class="activity-item__time">${formatActivityTime(e.at)}</time>`;
-      ul.appendChild(li);
-    });
+
+    function buildSection(labelText, list, readSection) {
+      const sec = document.createElement("section");
+      sec.className = "activity-feed-section" + (readSection ? " activity-feed-section--read" : "");
+      const h = document.createElement("h2");
+      h.className = "activity-feed-section__label";
+      h.textContent = labelText;
+      sec.appendChild(h);
+      const ul = document.createElement("ul");
+      ul.className = "activity-feed-list";
+      list.forEach((n) => {
+        const li = document.createElement("li");
+        li.className = "activity-notif";
+        li.setAttribute("data-notif-id", n.id);
+        const title = escapeHtml(notificationTitle(n));
+        const sub = escapeHtml(n.subtitle || "");
+        const time = formatNotifRelative(n.at);
+        const primaryBtn =
+          '<button type="button" class="activity-notif__btn activity-notif__btn--primary" data-inbox-action="go-task">Go to Task</button>';
+        const secondaryBtn = n.showSchedule
+          ? '<button type="button" class="activity-notif__btn activity-notif__btn--secondary" data-inbox-action="schedule">Schedule Task</button>'
+          : "";
+        const iso = new Date(n.at).toISOString();
+        li.innerHTML = `
+          <div class="activity-notif__top">
+            <h3 class="activity-notif__title">${title}</h3>
+            <time class="activity-notif__time" datetime="${iso}">${escapeHtml(time)}</time>
+          </div>
+          <p class="activity-notif__sub">${sub}</p>
+          <div class="activity-notif__actions">${primaryBtn}${secondaryBtn}</div>`;
+        ul.appendChild(li);
+      });
+      sec.appendChild(ul);
+      root.appendChild(sec);
+    }
+
+    if (unread.length) buildSection("Unread", unread, false);
+    if (read.length) buildSection("Read", read, true);
+  }
+
+  function tabFromLocation() {
+    const h = (window.location.hash || "").replace(/^#/, "");
+    if (h === "activity" || h === "schedule") return h;
+    return "home";
   }
 
   function setTab(name) {
+    const tab = name === "schedule" || name === "activity" || name === "home" ? name : "home";
     els.tabs().forEach((btn) => {
-      const on = btn.getAttribute("data-tab") === name;
+      const on = btn.getAttribute("data-tab") === tab;
       btn.classList.toggle("tab-bar__item--active", on);
       if (on) btn.setAttribute("aria-current", "page");
       else btn.removeAttribute("aria-current");
     });
     els.panels().forEach((panel) => {
-      const on = panel.getAttribute("data-panel") === name;
+      const on = panel.getAttribute("data-panel") === tab;
       panel.classList.toggle("panel--active", on);
       panel.hidden = !on;
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
+    try {
+      if (history.replaceState) {
+        const path = window.location.pathname || "/";
+        const q = window.location.search || "";
+        const hash = tab === "home" ? "" : `#${tab}`;
+        history.replaceState(null, "", `${path}${q}${hash}`);
+      }
+    } catch (_) {
+      /* file:// */
+    }
+    if (tab === "activity") renderActivity();
+  }
+
+  function bindActivityInbox() {
+    const root = els.activityInbox();
+    if (!root || root.dataset.inboxBound) return;
+    root.dataset.inboxBound = "1";
+    root.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-inbox-action]");
+      if (!btn || !root.contains(btn)) return;
+      const row = btn.closest("[data-notif-id]");
+      const id = row?.getAttribute("data-notif-id");
+      const action = btn.getAttribute("data-inbox-action");
+      if (id && Array.isArray(state.inbox)) {
+        const n = state.inbox.find((x) => x.id === id);
+        if (n) n.read = true;
+        saveState(state);
+      }
+      if (action === "go-task") {
+        renderActivity();
+        window.location.href = "tasks.html";
+        return;
+      }
+      if (action === "schedule") {
+        renderActivity();
+        setTab("schedule");
+      }
+    });
   }
 
   function bind() {
@@ -472,8 +632,14 @@
       if (ev.target === els.focusOverlay()) closeFocus();
     });
 
+    bindActivityInbox();
+
     els.tabs().forEach((btn) => {
-      btn.addEventListener("click", () => setTab(btn.getAttribute("data-tab")));
+      btn.addEventListener("click", () => setTab(btn.getAttribute("data-tab") || "home"));
+    });
+
+    window.addEventListener("hashchange", () => {
+      setTab(tabFromLocation());
     });
     els.viewAll().forEach((a) => {
       a.addEventListener("click", (ev) => {
@@ -497,7 +663,7 @@
     renderTaskList();
     renderSchedule();
     renderActivity();
-    setTab("home");
+    setTab(tabFromLocation());
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

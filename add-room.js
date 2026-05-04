@@ -12,6 +12,50 @@
 
   if (!overlay || !btnAdd) return;
 
+  const CUSTOM_ROOMS_KEY = "fullsweep_custom_rooms";
+  const STATIC_ROOM_SLUGS = new Set(["bathroom", "bedroom", "dining-room", "kitchen", "living-room"]);
+
+  function readCustomRooms() {
+    try {
+      const raw = localStorage.getItem(CUSTOM_ROOMS_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function writeCustomRooms(list) {
+    try {
+      localStorage.setItem(CUSTOM_ROOMS_KEY, JSON.stringify(list));
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function slugify(name) {
+    const s = String(name)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return s || "room";
+  }
+
+  function uniqueSlug(base) {
+    const taken = new Set(STATIC_ROOM_SLUGS);
+    readCustomRooms().forEach((e) => {
+      if (e && e.slug) taken.add(String(e.slug).replace(/[^a-z0-9-]/gi, ""));
+    });
+    let slug = base;
+    let i = 0;
+    while (taken.has(slug)) {
+      i += 1;
+      slug = `${base}-${i}`;
+    }
+    return slug;
+  }
+
   function toast(msg) {
     const root = document.getElementById("tasks-toast-root");
     if (!root) return;
@@ -91,6 +135,16 @@
       return;
     }
     const n = selected.length;
+    const slug = uniqueSlug(slugify(name));
+    const list = readCustomRooms();
+    list.push({
+      name,
+      slug,
+      type,
+      tasks: selected,
+    });
+    writeCustomRooms(list);
+    document.dispatchEvent(new CustomEvent("fullsweep:customRoomsChanged"));
     toast(`Created “${name}” with ${n} task${n === 1 ? "" : "s"} (demo).`);
     close();
   });
