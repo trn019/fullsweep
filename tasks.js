@@ -96,7 +96,23 @@
     hdr.setAttribute("aria-expanded", collapsed ? "true" : "false");
   });
 
-  const dayTasks = ["Clean Sink", "Clean Toilet", "Wash Rugs"];
+  const dayTasks = [
+    "Clean Sink",
+    "Clean Toilet",
+    "Wash Rugs",
+    "Change Bed Sheets",
+    "Scrub shower tiles",
+    "Flip mattress",
+    "Polish fixtures",
+    "Vacuum bedroom",
+    "Deep clean grout",
+    "Dust blinds",
+    "Restock supplies",
+    "Sort dresser",
+    "Mop bathroom floor",
+    "Air out pillows",
+    "Wash duvet cover",
+  ];
   const roomNames = ["Bathroom", "Bedroom", "Dining Room", "Kitchen", "Living Room"];
 
   document.querySelectorAll(".tasks-shuffle:not(.tasks-shuffle--rooms)").forEach((btn) => {
@@ -171,11 +187,12 @@
 
   /* Demo dots for expanded grid (weeks Thu–Wed, matches By Day mockups) */
   const TASK_DOTS_BY_ISO = {
-    "2027-01-14": ["urgent", "warn"],
-    "2027-01-15": ["good"],
-    "2027-01-16": ["good", "good"],
-    "2027-01-17": ["warn", "warn"],
-    "2027-01-18": ["good"],
+    "2027-01-14": ["urgent", "warn", "good"],
+    "2027-01-15": ["urgent", "good"],
+    "2027-01-16": ["warn", "good"],
+    "2027-01-17": ["good", "warn"],
+    "2027-01-18": ["urgent", "warn"],
+    "2027-01-19": ["warn", "good"],
     "2027-01-20": ["urgent", "good", "warn"],
     "2027-01-21": ["good"],
     "2027-01-22": ["urgent"],
