@@ -17,6 +17,96 @@
 
   const ROOM_OPTIONS = ["Bedroom", "Bathroom", "Kitchen", "Living Room", "Dining Room", "Other"];
 
+  /** Inline action bar above a task (Back · Mark Done · Focus · Edit) */
+  let activeBar = null;
+  let activeCard = null;
+
+  function toast(msg) {
+    const root = document.getElementById("tasks-toast-root") || document.getElementById("room-toast-root");
+    if (!root) return;
+    const el = document.createElement("div");
+    el.className = "tasks-toast";
+    el.setAttribute("role", "status");
+    el.textContent = msg;
+    root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add("tasks-toast--show"));
+    setTimeout(() => {
+      el.classList.remove("tasks-toast--show");
+      setTimeout(() => el.remove(), 200);
+    }, 2400);
+  }
+
+  function removeActionBar() {
+    if (activeBar && activeBar.parentNode) activeBar.remove();
+    if (activeCard) {
+      activeCard = null;
+    }
+    activeBar = null;
+  }
+
+  function actionBarHtml() {
+    return `
+<div class="tasks-task-action-bar" role="toolbar" aria-label="Task actions">
+  <button type="button" class="tasks-task-action tasks-task-action--back" data-action="back" aria-label="Close actions">
+    <svg class="tasks-task-action__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  </button>
+  <button type="button" class="tasks-task-action tasks-task-action--done" data-action="done">
+    <svg class="tasks-task-action__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+    <span class="tasks-task-action__label">Mark Done!</span>
+  </button>
+  <button type="button" class="tasks-task-action tasks-task-action--focus" data-action="focus">
+    <svg class="tasks-task-action__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+      <path d="M7 3h10v3l-4 6 4 6v3H7v-3l4-6-4-6V3z" />
+    </svg>
+    <span class="tasks-task-action__label">Focus</span>
+  </button>
+  <button type="button" class="tasks-task-action tasks-task-action--edit" data-action="edit">
+    <svg class="tasks-task-action__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 20h9M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+    <span class="tasks-task-action__label">Edit</span>
+  </button>
+</div>`;
+  }
+
+  function showActionBarBeforeCard(card, root) {
+    removeActionBar();
+    activeCard = card;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = actionBarHtml().trim();
+    const bar = wrap.firstElementChild;
+    root.insertBefore(bar, card);
+    activeBar = bar;
+  }
+
+  function handleToolbarAction(action, card) {
+    const title = card.querySelector(".tasks-card__title")?.textContent?.trim() || "Task";
+    if (action === "back") {
+      removeActionBar();
+      return;
+    }
+    if (action === "done") {
+      removeActionBar();
+      card.classList.add("tasks-card--marked-done");
+      card.setAttribute("data-task-marked-done", "true");
+      toast(`Marked done — ${title}`);
+      return;
+    }
+    if (action === "focus") {
+      removeActionBar();
+      toast(`Focus mode — ${title} (timer coming soon)`);
+      return;
+    }
+    if (action === "edit") {
+      removeActionBar();
+      openFromCard(card);
+    }
+  }
+
   function effortLevelFromCard(card) {
     const n = card.querySelectorAll(".tasks-card__dots .tasks-dot--on").length;
     if (n <= 1) return "low";
@@ -88,18 +178,47 @@
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !overlay.hidden) close();
+    if (e.key !== "Escape") return;
+    if (activeBar) {
+      removeActionBar();
+      return;
+    }
+    if (!overlay.hidden) close();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!activeBar || !activeCard) return;
+    if (activeBar.contains(e.target) || activeCard.contains(e.target)) return;
+    removeActionBar();
   });
 
   function bindList(root) {
     if (!root) return;
     root.addEventListener("click", (e) => {
+      const toolbarBtn = e.target.closest(".tasks-task-action-bar [data-action]");
+      if (toolbarBtn) {
+        const bar = toolbarBtn.closest(".tasks-task-action-bar");
+        if (!bar || !root.contains(bar)) return;
+        e.stopPropagation();
+        const card = bar.nextElementSibling;
+        if (!card || !card.classList.contains("tasks-card")) return;
+        handleToolbarAction(toolbarBtn.getAttribute("data-action") || "", card);
+        return;
+      }
+
       const card = e.target.closest(".tasks-card");
       if (!card || !root.contains(card)) return;
-      openFromCard(card);
+
+      if (card.previousElementSibling && card.previousElementSibling.classList.contains("tasks-task-action-bar")) {
+        removeActionBar();
+        return;
+      }
+
+      showActionBarBeforeCard(card, root);
     });
   }
 
   bindList(document.getElementById("room-task-list"));
   bindList(document.getElementById("bathroom-body"));
+  bindList(document.getElementById("bedroom-body"));
 })();
