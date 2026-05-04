@@ -42,6 +42,7 @@
       day?.removeAttribute("hidden");
       rooms?.setAttribute("hidden", "");
       phone?.classList.remove("tasks-phone--rooms-view");
+      document.dispatchEvent(new CustomEvent("fullsweep:closeAddRoom"));
     } else {
       day?.setAttribute("hidden", "");
       rooms?.removeAttribute("hidden");
@@ -414,10 +415,6 @@
   document.addEventListener("click", () => closeTasksSortMenu());
 
   setTasksSortMode("cleanliness");
-
-  document.getElementById("btn-add-room")?.addEventListener("click", () => {
-    toast("Add room — connect your create flow.");
-  });
 
   initRoomRings();
 

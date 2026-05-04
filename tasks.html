@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="tasks.css" />
     <link rel="stylesheet" href="task-settings.css" />
     <link rel="stylesheet" href="add-task.css" />
+    <link rel="stylesheet" href="add-room.css" />
   </head>
   <body class="tasks-page">
     <div class="tasks-phone">
@@ -845,6 +846,92 @@
         </a>
       </nav>
 
+      <div id="add-room-overlay" class="add-room-overlay" hidden aria-hidden="true">
+        <div class="add-room" role="dialog" aria-modal="true" aria-labelledby="add-room-title">
+          <div class="add-room__top" aria-hidden="true"></div>
+          <header class="add-room__header">
+            <button type="button" class="add-room__close" id="add-room-close" aria-label="Close">×</button>
+            <h1 class="add-room__title" id="add-room-title">Add a Room</h1>
+          </header>
+          <div class="add-room__body">
+            <label class="add-room__visually-hidden" for="add-room-name">Room name</label>
+            <input
+              type="text"
+              id="add-room-name"
+              class="add-room__input"
+              placeholder="Name This Room"
+              autocomplete="off"
+            />
+            <label class="add-room__visually-hidden" for="add-room-type">Room type</label>
+            <div class="add-room__select-wrap">
+              <select id="add-room-type" class="add-room__select" aria-label="Choose Room Type" required>
+                <option value="" selected>Choose Room Type</option>
+                <option value="bathroom">Bathroom</option>
+                <option value="bedroom">Bedroom</option>
+                <option value="kitchen">Kitchen</option>
+                <option value="living-room">Living Room</option>
+                <option value="dining-room">Dining Room</option>
+                <option value="office">Office</option>
+                <option value="garage">Garage</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <h2 class="add-room__section-title">Add Tasks to this Room!</h2>
+            <ul class="add-room__tasks" id="add-room-task-list">
+              <li>
+                <button type="button" class="add-room__task" data-task="Clean Toilet" aria-pressed="false">
+                  <span class="add-room__task-name">Clean Toilet</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="add-room__task" data-task="Clean Sink" aria-pressed="false">
+                  <span class="add-room__task-name">Clean Sink</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="add-room__task" data-task="Mop Floor" aria-pressed="false">
+                  <span class="add-room__task-name">Mop Floor</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="add-room__task" data-task="Wash Rugs" aria-pressed="false">
+                  <span class="add-room__task-name">Wash Rugs</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="add-room__task" data-task="Wash Shower Curtains" aria-pressed="false">
+                  <span class="add-room__task-name">Wash Shower Curtains</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li>
+                <button type="button" class="add-room__task" data-task="Wipe Down Surfaces" aria-pressed="false">
+                  <span class="add-room__task-name">Wipe Down Surfaces</span>
+                  <span class="add-room__task-check" aria-hidden="true"></span>
+                </button>
+              </li>
+              <li class="add-room__task-item--custom">
+                <label class="add-room__visually-hidden" for="add-room-custom">Add a custom task</label>
+                <input
+                  type="text"
+                  id="add-room-custom"
+                  class="add-room__task-input"
+                  placeholder="Add a Custom Task"
+                  autocomplete="off"
+                />
+              </li>
+            </ul>
+          </div>
+          <footer class="add-room__footer">
+            <button type="button" class="add-room__create" id="add-room-create">Create</button>
+          </footer>
+        </div>
+      </div>
+
     <div class="task-add-flow onetime-flow" id="onetime-flow" hidden aria-hidden="true">
       <div class="task-add-flow__sheet" role="dialog" aria-modal="true" aria-labelledby="onetime-title-1">
         <div class="onetime-step" id="onetime-step1">
@@ -1405,5 +1492,6 @@
     <script src="tasks.js" defer></script>
     <script src="task-settings.js" defer></script>
     <script src="add-task.js" defer></script>
+    <script src="add-room.js" defer></script>
   </body>
 </html>
