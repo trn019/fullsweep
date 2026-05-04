@@ -339,21 +339,19 @@ body.task-settings-open {
   cursor: pointer;
 }
 
-/* ——— Task quick actions (before Edit sheet) ——— */
+/* ——— Task quick actions (replace card body until dismissed) ——— */
 
-/* Toolbar + card share one width, radius, and shadow (matches .tasks-card) */
-.tasks-card-with-actions {
-  margin-bottom: 8px;
-  border-radius: var(--radius-card, 12px);
+.tasks-card.tasks-card--actions {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
   overflow: hidden;
-  box-shadow: 0 3px 14px rgba(17, 24, 39, 0.07);
-  background: var(--tasks-card, #fff);
+  border-radius: 0 0 var(--radius-card, 12px) var(--radius-card, 12px);
+  box-shadow: 0 0 0 1px rgba(0, 86, 164, 0.32), 0 3px 14px rgba(17, 24, 39, 0.07);
 }
 
-.tasks-card-with-actions .tasks-card {
-  margin-bottom: 0;
-  border-radius: 0;
-  box-shadow: none;
+.tasks-card__content-swap[hidden] {
+  display: none !important;
 }
 
 .tasks-task-action-bar {
@@ -364,11 +362,11 @@ body.task-settings-open {
   margin: 0;
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid rgba(0, 86, 164, 0.32);
+  border-bottom: none;
   overflow: hidden;
   background: #fff;
   box-shadow: none;
-  min-height: 40px;
+  min-height: 52px;
 }
 
 .tasks-task-action {

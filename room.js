@@ -354,11 +354,8 @@
   function sortRoomTaskCards(mode) {
     const listEl = document.getElementById("room-task-list");
     if (!listEl) return;
+    document.dispatchEvent(new CustomEvent("fullsweep:closeTaskActions"));
     const cards = Array.from(listEl.querySelectorAll(".tasks-card"));
-    cards.forEach((c) => {
-      const holder = c.closest(".tasks-card-with-actions");
-      if (holder && listEl.contains(holder)) holder.replaceWith(c);
-    });
     if (mode === "cleanliness") {
       cards.sort((a, b) => cleanlinessFromCard(b) - cleanlinessFromCard(a));
     } else {

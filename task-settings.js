@@ -17,7 +17,7 @@
 
   const ROOM_OPTIONS = ["Bedroom", "Bathroom", "Kitchen", "Living Room", "Dining Room", "Other"];
 
-  /** Inline action bar above a task (Back · Mark Done · Focus · Edit) */
+  /** Action bar replaces card body until Back / action / outside tap */
   let activeBar = null;
   let activeCard = null;
 
@@ -37,17 +37,19 @@
   }
 
   function removeActionBar() {
-    const holder = activeCard?.closest(".tasks-card-with-actions");
-    if (holder && activeBar && holder.contains(activeBar)) {
-      const root = holder.parentNode;
-      const card = activeCard;
-      if (root && card) {
-        root.insertBefore(card, holder);
-        holder.remove();
-      }
-    } else if (activeBar?.parentNode) {
-      activeBar.remove();
+    if (!activeCard) {
+      activeBar = null;
+      return;
     }
+    const card = activeCard;
+    const bar = card.querySelector(":scope > .tasks-task-action-bar");
+    const swap = card.querySelector(":scope > .tasks-card__content-swap");
+    if (bar) bar.remove();
+    if (swap) {
+      while (swap.firstChild) card.appendChild(swap.firstChild);
+      swap.remove();
+    }
+    card.classList.remove("tasks-card--actions");
     activeBar = null;
     activeCard = null;
   }
@@ -81,17 +83,24 @@
 </div>`;
   }
 
-  function showActionBarBeforeCard(card, root) {
+  function showActionsInCard(card) {
     removeActionBar();
-    activeCard = card;
-    const holder = document.createElement("div");
-    holder.className = "tasks-card-with-actions";
-    root.insertBefore(holder, card);
-    holder.appendChild(card);
+    if (card.querySelector(":scope > .tasks-task-action-bar")) return;
+
+    const swap = document.createElement("div");
+    swap.className = "tasks-card__content-swap";
+    while (card.firstChild) swap.appendChild(card.firstChild);
+    card.appendChild(swap);
+    swap.setAttribute("hidden", "");
+    swap.setAttribute("aria-hidden", "true");
+
     const temp = document.createElement("div");
     temp.innerHTML = actionBarHtml().trim();
     const bar = temp.firstElementChild;
-    holder.insertBefore(bar, card);
+    card.insertBefore(bar, swap);
+
+    card.classList.add("tasks-card--actions");
+    activeCard = card;
     activeBar = bar;
   }
 
@@ -209,11 +218,9 @@
     root.addEventListener("click", (e) => {
       const toolbarBtn = e.target.closest(".tasks-task-action-bar [data-action]");
       if (toolbarBtn) {
-        const bar = toolbarBtn.closest(".tasks-task-action-bar");
-        if (!bar || !root.contains(bar)) return;
+        const card = toolbarBtn.closest(".tasks-card");
+        if (!card || !root.contains(card)) return;
         e.stopPropagation();
-        const card = bar.nextElementSibling;
-        if (!card || !card.classList.contains("tasks-card")) return;
         handleToolbarAction(toolbarBtn.getAttribute("data-action") || "", card);
         return;
       }
@@ -221,16 +228,18 @@
       const card = e.target.closest(".tasks-card");
       if (!card || !root.contains(card)) return;
 
-      if (card.previousElementSibling && card.previousElementSibling.classList.contains("tasks-task-action-bar")) {
+      if (card.classList.contains("tasks-card--actions")) {
         removeActionBar();
         return;
       }
 
-      showActionBarBeforeCard(card, root);
+      showActionsInCard(card);
     });
   }
 
   bindList(document.getElementById("room-task-list"));
   bindList(document.getElementById("bathroom-body"));
   bindList(document.getElementById("bedroom-body"));
+
+  document.addEventListener("fullsweep:closeTaskActions", removeActionBar);
 })();
