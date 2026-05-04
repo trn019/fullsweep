@@ -30,45 +30,35 @@
 
       <div id="tasks-calendar-shell" class="tasks-calendar-shell">
         <div class="tasks-calendar-wrap">
-        <div class="tasks-calendar-card">
-          <div class="tasks-date-scroll" id="date-scroll" aria-label="Select day">
-            <button type="button" class="tasks-date-chip tasks-date-chip--active" data-date="14">
-              <span>THU</span>
-              <span>14</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="15">
-              <span>FRI</span>
-              <span>15</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="16">
-              <span>SAT</span>
-              <span>16</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="17">
-              <span>SUN</span>
-              <span>17</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="18">
-              <span>MON</span>
-              <span>18</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="19">
-              <span>TUE</span>
-              <span>19</span>
-            </button>
-            <button type="button" class="tasks-date-chip" data-date="20">
-              <span>WED</span>
-              <span>20</span>
+        <div class="tasks-calendar-card" id="tasks-calendar-card">
+          <div class="tasks-calendar-card__strip" id="calendar-strip">
+            <div class="tasks-date-scroll" id="date-scroll" aria-label="Select day">
+              <!-- Fallback row (Jan 14–20 2027); replaced on load by tasks.js -->
+              <button type="button" class="tasks-date-chip tasks-date-chip--active" data-iso="2027-01-14">
+                <span>THU</span><span>14</span>
+              </button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-15"><span>FRI</span><span>15</span></button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-16"><span>SAT</span><span>16</span></button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-17"><span>SUN</span><span>17</span></button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-18"><span>MON</span><span>18</span></button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-19"><span>TUE</span><span>19</span></button>
+              <button type="button" class="tasks-date-chip" data-iso="2027-01-20"><span>WED</span><span>20</span></button>
+            </div>
+            <button
+              type="button"
+              class="tasks-expand-btn tasks-expand-btn--open"
+              aria-label="Expand calendar"
+              id="expand-cal"
+              aria-expanded="false"
+              aria-controls="calendar-expanded"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5V2M12 22v-3M5 12H2M22 12h-3" />
+                <path d="M15.5 8.5 18 6M8.5 15.5 6 18M15.5 15.5 18 18M8.5 8.5 6 6" />
+              </svg>
             </button>
           </div>
-          <button type="button" class="tasks-expand-btn" aria-label="Expand calendar" id="expand-cal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 3 21 3 21 9" />
-              <polyline points="9 21 3 21 3 15" />
-              <line x1="21" y1="3" x2="14" y2="10" />
-              <line x1="3" y1="21" x2="10" y2="14" />
-            </svg>
-          </button>
+          <div class="tasks-calendar-expanded" id="calendar-expanded" hidden></div>
         </div>
         </div>
       </div>
@@ -104,6 +94,8 @@
               </div>
             </div>
           </div>
+
+          <p class="tasks-empty-day" id="tasks-empty-day" hidden>No tasks on this day.</p>
 
           <div class="tasks-sort-row">
             <div class="tasks-sort-wrap">
@@ -143,6 +135,7 @@
             <div class="tasks-room__body" id="bathroom-body">
               <article
                 class="tasks-card"
+                data-due-iso="2027-01-14"
                 data-cleanliness="88"
                 data-effort="1"
                 data-task-category="Bathroom"
@@ -176,6 +169,7 @@
 
               <article
                 class="tasks-card"
+                data-due-iso="2027-01-14"
                 data-cleanliness="52"
                 data-effort="2"
                 data-task-category="Bathroom"
@@ -209,6 +203,7 @@
 
               <article
                 class="tasks-card"
+                data-due-iso="2027-01-14"
                 data-cleanliness="85"
                 data-effort="5"
                 data-task-category="Bathroom"
@@ -242,7 +237,51 @@
             </div>
           </section>
 
-          <p class="tasks-room-next">Bedroom</p>
+          <section class="tasks-room" data-collapsed="false">
+            <button type="button" class="tasks-room__header" aria-expanded="true" id="toggle-bedroom">
+              Bedroom
+              <span class="tasks-room__chev" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+              </span>
+            </button>
+            <div class="tasks-room__body" id="bedroom-body">
+              <article
+                class="tasks-card"
+                data-due-iso="2027-01-14"
+                data-cleanliness="45"
+                data-effort="2"
+                data-task-category="Bedroom"
+                data-task-location="Bedroom"
+                data-task-repeat="Every week"
+                data-task-every="week"
+                data-task-schedule-repeat="On Monday"
+                data-task-time="Time"
+              >
+                <h3 class="tasks-card__title">Change Bed Sheets</h3>
+                <p class="tasks-card__meta">cleaned 1 week ago</p>
+                <div class="tasks-card__repeat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M23 4v6h-6" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                  Every week
+                </div>
+                <div class="tasks-meter">
+                  <div class="tasks-meter__track">
+                    <div class="tasks-meter__fill tasks-meter__fill--warn" style="width: 45%"></div>
+                  </div>
+                  <p class="tasks-meter__label tasks-meter__label--warn">Getting dusty...</p>
+                </div>
+                <div class="tasks-card__dots" aria-hidden="true">
+                  <span class="tasks-dot tasks-dot--on"></span>
+                  <span class="tasks-dot tasks-dot--on"></span>
+                  <span class="tasks-dot"></span>
+                </div>
+              </article>
+            </div>
+          </section>
         </main>
 
       </div>
