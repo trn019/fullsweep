@@ -63,7 +63,7 @@
 .tasks-hero {
   flex-shrink: 0;
   background: var(--tasks-blue);
-  padding: calc(12px + env(safe-area-inset-top, 0px)) 0 0;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 0 0;
   position: relative;
   z-index: 10;
 }
@@ -72,7 +72,7 @@
   display: flex;
   justify-content: center;
   gap: 40px;
-  padding: 0 20px 16px;
+  padding: 0 20px 12px;
   position: relative;
   z-index: 1;
   touch-action: manipulation;
@@ -81,7 +81,8 @@
 .tasks-view-tab {
   background: none;
   border: none;
-  padding: 8px 4px 12px;
+  padding: 4px 4px 10px;
+  min-height: 44px;
   font-size: 0.9375rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.65);
@@ -152,6 +153,34 @@
   align-items: center;
   gap: 6px;
   width: 100%;
+}
+
+.tasks-strip-nav {
+  flex-shrink: 0;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: rgba(0, 86, 164, 0.08);
+  color: var(--tasks-blue);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.tasks-strip-nav:hover {
+  background: rgba(0, 86, 164, 0.14);
+}
+
+.tasks-strip-nav:focus-visible {
+  outline: 2px solid var(--tasks-blue);
+  outline-offset: 2px;
 }
 
 .tasks-calendar-card--expanded {
@@ -967,7 +996,16 @@ a.room-tile:focus-visible {
 }
 
 .tasks-page .tab-bar a.tab-bar__item--active {
-  color: var(--tasks-blue);
+  color: var(--auto-navy);
+}
+
+.tasks-page .tab-bar a.tab-bar__item--active svg {
+  opacity: 1;
+  color: var(--auto-navy);
+}
+
+.tasks-page .tab-bar a.tab-bar__item--active:hover {
+  color: var(--auto-navy);
 }
 
 /* Solid bar while task-added completion is open — avoids frosted corners “peeping” page blue */
@@ -1817,7 +1855,8 @@ body.tasks-select-time-active {
   z-index: 32;
   top: 0;
   left: 50%;
-  transform: translate(-50%, 100%);
+  /* Slide fully past the viewport so frosted tab-bar corners cannot sample blob colors */
+  transform: translate3d(-50%, 100dvh, 0);
   width: 100%;
   max-width: 430px;
   bottom: calc(var(--tab-h) + var(--safe-bottom));
@@ -1831,7 +1870,7 @@ body.tasks-select-time-active {
 }
 
 .tasks-focus-menu--open {
-  transform: translate(-50%, 0);
+  transform: translate3d(-50%, 0, 0);
   pointer-events: auto;
 }
 
@@ -2033,7 +2072,7 @@ body.tasks-focus-celebrate-active {
   z-index: 36;
   top: 0;
   left: 50%;
-  transform: translate(-50%, 100%);
+  transform: translate3d(-50%, 100dvh, 0);
   width: 100%;
   max-width: 430px;
   bottom: calc(var(--tab-h) + var(--safe-bottom));
@@ -2043,10 +2082,11 @@ body.tasks-focus-celebrate-active {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
   pointer-events: none;
   transition: transform 0.38s cubic-bezier(0.33, 1, 0.68, 1);
+  overflow: hidden;
 }
 
 .tasks-focus-session--open {
-  transform: translate(-50%, 0);
+  transform: translate3d(-50%, 0, 0);
   pointer-events: auto;
 }
 
@@ -2301,7 +2341,7 @@ body.tasks-focus-celebrate-active {
   z-index: 38;
   top: 0;
   left: 50%;
-  transform: translate(-50%, 100%);
+  transform: translate3d(-50%, 100dvh, 0);
   width: 100%;
   max-width: 430px;
   bottom: calc(var(--tab-h) + var(--safe-bottom));
@@ -2311,10 +2351,11 @@ body.tasks-focus-celebrate-active {
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
   pointer-events: none;
   transition: transform 0.38s cubic-bezier(0.33, 1, 0.68, 1);
+  overflow: hidden;
 }
 
 .tasks-focus-break--open {
-  transform: translate(-50%, 0);
+  transform: translate3d(-50%, 0, 0);
   pointer-events: auto;
 }
 
@@ -2552,7 +2593,7 @@ body.tasks-focus-celebrate-active {
   z-index: 44;
   top: 0;
   left: 50%;
-  transform: translate(-50%, 100%);
+  transform: translate3d(-50%, 100dvh, 0);
   width: 100%;
   max-width: 430px;
   bottom: calc(var(--tab-h) + var(--safe-bottom));
@@ -2566,7 +2607,7 @@ body.tasks-focus-celebrate-active {
 }
 
 .tasks-focus-celebrate--open {
-  transform: translate(-50%, 0);
+  transform: translate3d(-50%, 0, 0);
   pointer-events: auto;
 }
 

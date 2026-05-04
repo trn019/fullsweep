@@ -1184,6 +1184,21 @@
     if (iso) setSelectedIso(iso);
   });
 
+  function shiftSelectedWeek(deltaWeeks) {
+    const w = typeof deltaWeeks === "number" && Number.isFinite(deltaWeeks) ? Math.trunc(deltaWeeks) : 0;
+    if (w === 0) return;
+    setSelectedIso(formatISO(addDays(parseISO(selectedIso), w * 7)));
+  }
+
+  document.getElementById("date-strip-prev")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    shiftSelectedWeek(-1);
+  });
+  document.getElementById("date-strip-next")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    shiftSelectedWeek(1);
+  });
+
   function dotsHtmlFor(iso) {
     const dots = TASK_DOTS_BY_ISO[iso];
     if (!dots || !dots.length) return '<div class="tasks-cal-cell__dots" aria-hidden="true"></div>';

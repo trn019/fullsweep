@@ -21,6 +21,20 @@
   --font: "Inter", system-ui, -apple-system, sans-serif;
   --tab-h: 72px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tab-bar-active: #1a4384;
+  /* Motion + interaction (mirrored in tasks.css) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.33, 1, 0.68, 1);
+  --dur-instant: 0.1s;
+  --dur-fast: 0.15s;
+  --dur-medium: 0.22s;
+  --dur-slow: 0.38s;
+  --dur-reveal: 0.4s;
+  --press-scale: 0.99;
+  --press-scale-strong: 0.96;
+  --opacity-disabled: 0.45;
+  --opacity-disabled-muted: 0.35;
+  --focus-ring-color: rgba(0, 74, 153, 0.42);
 }
 
 *,
@@ -50,6 +64,11 @@ a {
 
 button {
   font-family: inherit;
+}
+
+body.app :is(button, a[href], [role="button"]):focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: 2px;
 }
 
 /* Phone frame — centered on wide screens */
@@ -159,6 +178,11 @@ button {
   white-space: nowrap;
 }
 
+.link-all {
+  border-radius: 6px;
+  transition: color var(--dur-fast) var(--ease-standard), text-decoration-color var(--dur-fast) var(--ease-standard);
+}
+
 .link-all:hover {
   text-decoration: underline;
 }
@@ -173,8 +197,8 @@ button {
 
 .carousel__arrow {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -183,7 +207,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background var(--dur-fast) var(--ease-standard);
 }
 
 .carousel__arrow:hover {
@@ -230,7 +254,8 @@ button {
   border-radius: var(--radius-pill);
   cursor: pointer;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
-  transition: filter 0.15s, transform 0.1s;
+  transition: filter var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
 }
 
 .btn-pill:hover {
@@ -238,11 +263,11 @@ button {
 }
 
 .btn-pill:active {
-  transform: scale(0.99);
+  transform: scale(var(--press-scale));
 }
 
 .btn-pill:disabled {
-  opacity: 0.45;
+  opacity: var(--opacity-disabled);
   cursor: not-allowed;
   filter: none;
 }
@@ -276,9 +301,14 @@ button {
   border-radius: var(--radius-pill);
   cursor: pointer;
   align-self: flex-start;
-  transition: background 0.15s;
+  transition: background var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
   text-decoration: none;
   display: inline-block;
+}
+
+.btn-inline:active {
+  transform: scale(var(--press-scale));
 }
 
 .btn-inline:hover {
@@ -294,14 +324,21 @@ button {
   background: none;
   border: none;
   cursor: pointer;
+  border-radius: 10px;
+  transition: color var(--dur-fast) var(--ease-standard),
+    transform var(--dur-instant) var(--ease-standard);
 }
 
 .btn-text:hover {
   color: var(--text);
 }
 
+.btn-text:active {
+  transform: scale(var(--press-scale));
+}
+
 .carousel__arrow:disabled {
-  opacity: 0.35;
+  opacity: var(--opacity-disabled-muted);
   cursor: not-allowed;
 }
 
@@ -334,7 +371,8 @@ button {
   padding: 0;
   cursor: pointer;
   height: 8px;
-  transition: width 0.2s ease, background 0.2s ease;
+  transition: width var(--dur-medium) var(--ease-standard),
+    background var(--dur-medium) var(--ease-standard);
 }
 
 .task-card--empty .task-card__title {
@@ -407,7 +445,7 @@ button {
   width: 72%;
   border-radius: 999px;
   background: linear-gradient(90deg, #fcd34d, var(--dust-orange));
-  transition: width 0.35s ease;
+  transition: width 0.35s var(--ease-standard);
 }
 
 .dust-meter__label {
@@ -630,23 +668,25 @@ button {
   font-weight: 600;
   color: var(--muted-light);
   border-radius: 12px;
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
 }
 
 .tab-bar__item svg {
   opacity: 0.85;
 }
 
-.tab-bar__item:hover {
+.tab-bar__item:not(.tab-bar__item--active):hover {
   color: var(--muted);
 }
 
 .tab-bar__item--active {
-  color: var(--blue);
+  color: var(--tab-bar-active);
 }
 
 .tab-bar__item--active svg {
   opacity: 1;
+  color: var(--tab-bar-active);
 }
 
 .tab-bar button.tab-bar__item,
@@ -656,7 +696,6 @@ button {
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  color: inherit;
 }
 
 /* ——— Panels (tabs) ——— */
@@ -812,7 +851,7 @@ button {
 
 .schedule-header__chev {
   flex-shrink: 0;
-  transition: transform 0.22s ease;
+  transition: transform var(--dur-medium) var(--ease-standard);
 }
 
 .schedule-header__edit {
@@ -1069,7 +1108,7 @@ button {
 }
 
 .schedule-block__add:active {
-  transform: scale(0.96);
+  transform: scale(var(--press-scale-strong));
 }
 
 /* ——— Schedule week grid ——— */
@@ -1316,7 +1355,7 @@ button {
   gap: 10px;
   min-width: 228px;
   max-width: min(280px, calc(100vw - 32px));
-  animation: scheduleAddPickerIn 0.2s ease;
+  animation: scheduleAddPickerIn var(--dur-medium) var(--ease-standard);
 }
 
 @keyframes scheduleAddPickerIn {
@@ -1476,11 +1515,12 @@ button {
   border: none;
   border-radius: var(--radius-pill);
   cursor: pointer;
-  transition: transform 0.12s ease, filter 0.12s ease;
+  transition: transform var(--dur-instant) var(--ease-standard),
+    filter var(--dur-fast) var(--ease-standard);
 }
 
 .activity-notif__btn:active {
-  transform: scale(0.98);
+  transform: scale(var(--press-scale));
 }
 
 .activity-notif__btn--primary {
@@ -1541,7 +1581,8 @@ button {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
+  transition: opacity var(--dur-medium) var(--ease-standard),
+    transform var(--dur-medium) var(--ease-standard);
   max-width: 100%;
   text-align: center;
 }
@@ -1565,7 +1606,8 @@ button {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition: opacity var(--dur-medium) var(--ease-standard),
+    visibility var(--dur-medium) var(--ease-standard);
 }
 
 .focus-overlay.is-open {

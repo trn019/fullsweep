@@ -34,6 +34,16 @@
         <div class="tasks-calendar-wrap">
         <div class="tasks-calendar-card" id="tasks-calendar-card">
           <div class="tasks-calendar-card__strip" id="calendar-strip">
+            <button
+              type="button"
+              class="tasks-strip-nav tasks-strip-nav--prev"
+              id="date-strip-prev"
+              aria-label="Previous week"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
             <div class="tasks-date-scroll" id="date-scroll" aria-label="Select day">
               <!-- Fallback row (Jan 14–20 2027); replaced on load by tasks.js -->
               <button type="button" class="tasks-date-chip tasks-date-chip--active" data-iso="2027-01-14">
@@ -46,6 +56,16 @@
               <button type="button" class="tasks-date-chip" data-iso="2027-01-19"><span>TUE</span><span>19</span></button>
               <button type="button" class="tasks-date-chip" data-iso="2027-01-20"><span>WED</span><span>20</span></button>
             </div>
+            <button
+              type="button"
+              class="tasks-strip-nav tasks-strip-nav--next"
+              id="date-strip-next"
+              aria-label="Next week"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
             <button
               type="button"
               class="tasks-expand-btn tasks-expand-btn--open"
