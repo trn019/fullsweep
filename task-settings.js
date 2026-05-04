@@ -50,6 +50,7 @@
       swap.remove();
     }
     card.classList.remove("tasks-card--actions");
+    card.style.removeProperty("min-height");
     activeBar = null;
     activeCard = null;
   }
@@ -87,6 +88,8 @@
     removeActionBar();
     if (card.querySelector(":scope > .tasks-task-action-bar")) return;
 
+    const h = Math.round(card.getBoundingClientRect().height);
+
     const swap = document.createElement("div");
     swap.className = "tasks-card__content-swap";
     while (card.firstChild) swap.appendChild(card.firstChild);
@@ -100,6 +103,8 @@
     card.insertBefore(bar, swap);
 
     card.classList.add("tasks-card--actions");
+    const minH = Math.max(h, 108);
+    card.style.minHeight = `${minH}px`;
     activeCard = card;
     activeBar = bar;
   }

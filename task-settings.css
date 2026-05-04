@@ -346,27 +346,29 @@ body.task-settings-open {
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-  border-radius: 0 0 var(--radius-card, 12px) var(--radius-card, 12px);
-  box-shadow: 0 0 0 1px rgba(0, 86, 164, 0.32), 0 3px 14px rgba(17, 24, 39, 0.07);
+  /* Same silhouette as a normal task card (full radius + same shadow family) */
+  border-radius: var(--radius-card, 12px);
+  border: 1px solid rgba(0, 86, 164, 0.28);
+  box-shadow: 0 3px 14px rgba(17, 24, 39, 0.07);
 }
 
 .tasks-card__content-swap[hidden] {
   display: none !important;
 }
 
-.tasks-task-action-bar {
+.tasks-card--actions .tasks-task-action-bar {
   display: flex;
   flex-direction: row;
   align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   margin: 0;
   border-radius: 0;
   border: none;
-  border-bottom: none;
   overflow: hidden;
   background: #fff;
   box-shadow: none;
-  min-height: 52px;
 }
 
 .tasks-task-action {

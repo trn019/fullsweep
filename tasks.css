@@ -576,7 +576,8 @@
 }
 
 .tasks-room__body {
-  overflow: hidden;
+  /* visible so task cards keep full radius/shadow when action bar replaces body */
+  overflow: visible;
 }
 
 .tasks-room[data-collapsed="true"] .tasks-room__body {
